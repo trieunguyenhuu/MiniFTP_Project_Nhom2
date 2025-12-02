@@ -1,0 +1,666 @@
+﻿<Page x:Class="MiniFTPClient_WPF.home.Page1"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:Icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      mc:Ignorable="d"
+      Background="White"
+      d:DesignHeight="500" d:DesignWidth="970"
+      Title="Page1">
+
+    <Page.Resources>
+        
+        <Style x:Key="UpLoadtButton" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#16A34A"/>
+            <Setter Property="BorderBrush" Value="#16A34A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="8"
+                        Padding="{TemplateBinding Padding}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Icon:PackIconMaterial Kind="UploadOutline" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#ECFDF3"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Refresh button (trắng nhạt bình thường, hover xám nhẹ) -->
+        <Style x:Key="SimpleButton" TargetType="Button">
+            <Setter Property="Background" Value="#FAFAFA"/>
+            <!-- normal -->
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#0F1724"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="8"
+                        Padding="{TemplateBinding Padding}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Icon:PackIconMaterial Kind="Refresh" VerticalAlignment="Center"
+                                               Width="18" Height="18" Margin="0,0,8,0"
+                                               Foreground="{TemplateBinding Foreground}"/>
+                                <TextBlock Text="{TemplateBinding Tag}"
+                                   FontSize="16"
+                                   VerticalAlignment="Center"
+                                   Foreground="{TemplateBinding Foreground}"/>
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#EEF2F6"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#CBD5E1"/>
+                            </Trigger>
+
+                            <!-- Pressed -->
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#E6E8EB"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#94A3B8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+        <Style x:Key="DownloadButton" TargetType="Button">
+            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#1E40AF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="10"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#1E40FF"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#60A5FA"/>
+                            </Trigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#1F3AA6"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#134A8A"/>
+                            </Trigger>
+
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#60A5FA"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DeleteButton" TargetType="Button">
+            <Setter Property="Background" Value="#EF4444"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#DC2626"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="10"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <!-- Hover (đậm hơn) -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#DC2626"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#FCA5A5"/>
+                            </Trigger>
+
+                            <!-- Pressed (đậm nhất) -->
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#B91C1C"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#7F1D1D"/>
+                            </Trigger>
+
+                            <!-- Focus (giống hover nhẹ) -->
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#FCA5A5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ShareButton" TargetType="Button">
+            <Setter Property="Background" Value="#6366F1"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#4F46E5"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="10"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+
+                            <!-- Hover -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#4F46E5"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#A5B4FC"/>
+                            </Trigger>
+
+                            <!-- Pressed -->
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#4338CA"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#3730A3"/>
+                            </Trigger>
+
+                            <!-- Keyboard focus -->
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#A5B4FC"/>
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Modern controls for SharePanel -->
+        <Style x:Key="ModernTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="4,2"/>
+            <Setter Property="MinHeight" Value="30"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="Bd"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="8"
+                        Padding="{TemplateBinding Padding}">
+                            <ScrollViewer x:Name="PART_ContentHost"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#CBD5E1"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#60A5FA"/>
+                                <Setter TargetName="Bd" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#60A5FA" BlurRadius="8" ShadowDepth="0" Opacity="0.12"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModernButton" TargetType="Button">
+            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="BorderBrush" Value="#1E40AF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                        CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#1E40FF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Background" Value="#E5E7EB"/>
+                                <Setter Property="Foreground" Value="#9CA3AF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="GhostButton" TargetType="Button">
+            <Setter Property="Background" Value="#E0E7FF"/>
+            <!-- Màu nhạt ban đầu -->
+            <Setter Property="Foreground" Value="#4F46E5"/>
+            <!-- Chữ tím nhẹ -->
+            <Setter Property="BorderBrush" Value="#CBD5FF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="10"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+
+                            <!-- Hover -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#C7D2FE"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#A5B4FC"/>
+                            </Trigger>
+
+                            <!-- Pressed -->
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#A5B4FC"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#818CF8"/>
+                            </Trigger>
+
+                            <!-- Focus -->
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#A5B4FC"/>
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FooterCancelButton" TargetType="Button">
+            <Setter Property="Background" Value="#F3F4F6"/>
+            <!-- Xám rất nhạt -->
+            <Setter Property="Foreground" Value="#4B5563"/>
+            <!-- Chữ xám -->
+            <Setter Property="BorderBrush" Value="#D1D5DB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="8"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+
+                            <!-- Hover -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#E5E7EB"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#9CA3AF"/>
+                            </Trigger>
+
+                            <!-- Pressed -->
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#D1D5DB"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#6B7280"/>
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </Page.Resources>
+
+    <Grid Margin="10" Background="White">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="55"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="White" CornerRadius="8"
+                Padding="10" BorderBrush="#E5E7EB" BorderThickness="1">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Icon:PackIconMaterial Kind="FolderHomeOutline" Width="22" Height="22" Margin="0,0,5,0" VerticalAlignment="Center" Foreground="Gray"/>
+                <TextBlock Text="  >  " VerticalAlignment="Center" FontSize="20" />
+                <Border Background="White" Padding="8,6" Width="855">
+                    <ItemsControl ItemsSource="{Binding Breadcrumbs}" x:Name="BreadcrumbsControl">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding}" Cursor="Hand" Margin="4,0"
+                                       MouseLeftButtonUp="Breadcrumb_Click"
+                                       VerticalAlignment="Center" FontSize="18"/>
+                                    <TextBlock Text="  &gt;  " Foreground="Black" VerticalAlignment="Center" FontSize="20"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+            </StackPanel>
+        </Border>
+
+
+        <Grid Grid.Row="2" Margin="0,10,0,0" Background="White">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="400"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Background="White" CornerRadius="10"
+                    BorderBrush="#D1D5DB" BorderThickness="1"
+                    Padding="10" Margin="0,0,10,0">
+                <Grid Background="White">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Icon:PackIconMaterial Kind="FolderOutline" VerticalAlignment="Center" Width="22" Height="22" Margin="0,0,10,0"/>
+                            <TextBlock Text="Danh sách" FontFamily="Arial" FontSize="20" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Button Style="{StaticResource UpLoadtButton}" Content="Tải lên" FontSize="16" Padding="10,4" Margin="0,0,6,0" />
+                            <Button Style="{StaticResource SimpleButton}" x:Name="BtnRefresh" Content="Làm mới" FontSize="16" Padding="10,4"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Grid.Row="1" Height="1" Background="#E5E7EB" Margin="-16,18,-16,0"/>
+
+                    <ListBox x:Name="FileListBox"
+                             Grid.Row="1"
+                             Margin="0,10,0,0"
+                             BorderThickness="0"
+                             Background="White"
+                             ItemsSource="{Binding Files}"
+                             SelectionChanged="FileListBox_SelectionChanged" 
+                             PreviewMouseRightButtonDown="FileListBox_PreviewMouseRightButtonDown">
+
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <!-- Outer Grid giữ control, nhưng background mặc định trong suốt -->
+                                            <Grid Background="Transparent">
+                                                <!-- Inner border chính: mọi hiệu ứng sẽ ảnh hưởng vào đây -->
+                                                <Border x:Name="Bd" Background="Transparent" CornerRadius="8" BorderBrush="#E5E7EB" BorderThickness="1" Padding="14" Margin="0,6,0,0" HorizontalAlignment="Stretch">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <TextBlock Text="{Binding Icon}" FontSize="20" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="2" Text="{Binding Size}" Foreground="#6B7280" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                                    </Grid>
+                                                </Border>
+                                            </Grid>
+
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="#F1F8FF"/>
+                                                </Trigger>
+
+                                                <!-- Selected: màu đậm hơn -->
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="#CFE3FF"/>
+                                                    <!-- màu selected đậm hơn -->
+                                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#7FB3FF"/>
+                                                </Trigger>
+
+                                                <!-- Khi item được focus bằng bàn phím cũng hiện selected style (tuỳ chọn) -->
+                                                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#7FB3FF"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Padding="10" Margin="0,5"
+                                        Background="#F9FAFB" CornerRadius="6"
+                                        BorderBrush="#E5E7EB" BorderThickness="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Icon (from FileItem.Icon) -->
+                                        <TextBlock Text="{Binding Icon}" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding Size}" Foreground="#6B7280" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+
+          
+            <Grid Grid.Column="1" Background="White">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Background="#f3ffe3" CornerRadius="10"
+            BorderBrush="#c7f9cc" BorderThickness="1" Padding="15">
+                    <StackPanel>
+                        <TextBlock Text="✔ Thao tác File" FontSize="18"  Margin="0,0,0,10"/>
+                        <Button Padding="8" Style="{StaticResource DownloadButton}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Icon:PackIconMaterial Kind="DownloadOutline" VerticalAlignment="Center" Width="20" Height="20"/>
+                                <TextBlock Text="  Tải xuống" FontSize="18" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Padding="8" Margin="0,10,0,0" Style="{StaticResource ShareButton}" Click="BtnShare_Click">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Icon:PackIconMaterial Kind="ShareOutline" VerticalAlignment="Center" Width="20" Height="20"/>
+                                <TextBlock Text="  Chia sẻ" FontSize="18" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Padding="8" Margin="0,10,0,0" Style="{StaticResource DeleteButton}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Icon:PackIconMaterial Kind="TrashCanOutline" VerticalAlignment="Center" Width="20" Height="20"/>
+                                <TextBlock Text="  Xóa" FontSize="18" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1" Background="#0A1A2F" CornerRadius="10" BorderBrush="#D1D5DB" BorderThickness="1" Padding="10" Margin="0,20,0,0">
+                    <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden">
+                        <StackPanel>
+                            <TextBlock Text=">_  Nhật ký hoạt động" Foreground="#10B981" FontSize="18"/>
+                            <StackPanel Margin="0,10,0,0" Background="White">
+                                <ItemsControl ItemsSource="{Binding ActivityLogs}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#fecaca" Padding="8" CornerRadius="6" Margin="0,0,0,6">
+                                                <TextBlock Text="{Binding}"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <Rectangle x:Name="Overlay"
+           Grid.Row="0" Grid.RowSpan="3"
+           Fill="#80000000"
+           Visibility="Collapsed"
+           Panel.ZIndex="998"
+           MouseDown="Overlay_MouseDown"/>
+
+        <Border x:Name="SharePanel" Grid.RowSpan="3" Background="#fafafa" CornerRadius="20" Visibility="Collapsed" VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="400" MinHeight="300" MaxWidth="900" MaxHeight="700" Width="450" Height="350">
+            <Border.Effect>
+                <DropShadowEffect Color="#000000" BlurRadius="25" ShadowDepth="5" Opacity="0.45"/>
+            </Border.Effect>
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="133*"/>
+                        <ColumnDefinition Width="82*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Icon:PackIconMaterial Kind="ShareVariantOutline" Width="20" Height="20" Foreground="#2563EB" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Chia sẻ file" FontSize="20" FontWeight="SemiBold" Foreground="Black" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button Content="✕" Width="30" Height="30" Background="Transparent" Foreground="Red" FontWeight="Bold" BorderBrush="{x:Null}" HorizontalAlignment="Left" VerticalAlignment="Center" Cursor="Hand" Click="CloseSharePanel_Click" Grid.Column="1" Margin="134,0,0,0"/>
+                </Grid>
+
+                <TextBlock Grid.Row="1" Text="Nhập tên người dùng bạn muốn chia sẻ. Họ sẽ thấy mục này trong &quot;File nhận được&quot; của họ" Margin="0,0,0,12" TextWrapping="Wrap"  FontSize="16" Foreground="Gray"/>
+                <StackPanel Grid.Row="2" Margin="0,12,0,12" VerticalAlignment="Top" Orientation="Vertical" >
+                    <Border Background="#F0F6FF" BorderBrush="#C7D8FF" BorderThickness="1" CornerRadius="12" Padding="14" Margin="0,5,0,10">
+                        <StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBlock Text="Mục:" FontWeight="SemiBold" FontSize="16" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TxtSelectedFile" Text=" (Chưa chọn file)"  FontSize="16" Foreground="#2563EB" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Loại:" FontWeight="SemiBold" FontSize="16" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="LblFileType" Text=" Không xác định" FontSize="16" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </Border>
+
+
+                    <StackPanel Margin="0,20,0,0">
+                        <TextBlock Text="Tên người nhận" FontWeight="SemiBold" Margin="0,0,0,6" FontSize="16"/>
+                        <TextBox x:Name="TxtRecipient" Style="{StaticResource ModernTextBox}" FontSize="16" MinWidth="320" Height="34" TextChanged="TxtRecipient_TextChanged"/>
+                    </StackPanel>
+
+                </StackPanel>
+
+                <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="BtnDoShare" Content="Chia sẻ" Width="100" Height="36" Click="BtnDoShare_Click" Style="{StaticResource ModernButton}" IsEnabled="False"/>
+                    <Button Style="{StaticResource FooterCancelButton}" Content="Hủy" Width="100" Height="36" Click="CloseSharePanel_Click" Margin="10,0,0,0"/>
+                </StackPanel>
+
+            </Grid>
+        </Border>
+    </Grid>
+
+</Page>

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36623.8 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniFTPServer_WPF", "MiniFTPServer_WPF\MiniFTPServer_WPF.csproj", "{651CD203-785C-4FBD-998F-A7BC2960C872}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniFTPClient_WPF", "MiniFTPClient_WPF\MiniFTPClient_WPF.csproj", "{4DA183D2-D6E6-4257-822F-A22384F861B1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{651CD203-785C-4FBD-998F-A7BC2960C872}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{651CD203-785C-4FBD-998F-A7BC2960C872}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{651CD203-785C-4FBD-998F-A7BC2960C872}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{651CD203-785C-4FBD-998F-A7BC2960C872}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DA183D2-D6E6-4257-822F-A22384F861B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DA183D2-D6E6-4257-822F-A22384F861B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DA183D2-D6E6-4257-822F-A22384F861B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DA183D2-D6E6-4257-822F-A22384F861B1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FFD945FE-4172-41D3-8D53-11226611AA41}
+	EndGlobalSection
+EndGlobal
