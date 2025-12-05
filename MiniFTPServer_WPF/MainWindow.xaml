@@ -253,7 +253,7 @@
                         </Grid.ColumnDefinitions>
 
                         <!-- Thời gian hoạt động -->
-                        <Border Background="#121929"
+                        <Border     Background="#121929"
                                     CornerRadius="16"
                                     Padding="14"
                                     Margin="0,0,8,0">
@@ -265,7 +265,8 @@
                                                    Foreground="{StaticResource TextMuted}"
                                                    FontSize="13"/>
                                 </StackPanel>
-                                <TextBlock Text="00:00:00"
+                                <TextBlock     x:Name="txtUptime"
+                                               Text="00:00:00"
                                                FontSize="25"
                                                FontWeight="SemiBold"
                                                Foreground="{StaticResource TextMain}"/>
@@ -288,7 +289,8 @@
                                                    Foreground="{StaticResource TextMuted}"
                                                    FontSize="13"/>
                                 </StackPanel>
-                                <TextBlock Text="Offline"
+                                <TextBlock     x:Name="lblStatus"
+                                               Text="Offline"
                                                FontSize="25"
                                                FontWeight="SemiBold"
                                                Foreground="{StaticResource DangerRed}"/>
@@ -309,7 +311,8 @@
                                                Foreground="{StaticResource TextMuted}"
                                                FontSize="13"/>
                                 </StackPanel>
-                                <TextBlock Text="4"
+                                <TextBlock x:Name="txtConnectionCount"
+                                           Text="0"
                                            FontSize="25"
                                            FontWeight="SemiBold"
                                            Foreground="{StaticResource DangerRed}"/>
@@ -333,12 +336,16 @@
                                    Foreground="{StaticResource TextMain}"/>
 
                     <StackPanel Grid.Row="1" Margin="0,18,0,0">
-                        <Button Style="{StaticResource ModernButton}"
+                        <Button     x:Name="btnStart"
+                                    Click="btnStart_Click"
+                                    Style="{StaticResource ModernButton}"
                                     Content="▶   Khởi Động Server"
                                     Height="48"
                                     Margin="0,0,0,10"/>
 
-                        <Button Style="{StaticResource SecondaryButton}"
+                        <Button     x:Name="btnStop"
+                                    Click="btnStop_Click"
+                                    Style="{StaticResource SecondaryButton}"
                                     Content="■   Dừng Server"
                                     Height="44"
                                     IsEnabled="False"/>
@@ -379,66 +386,20 @@
 
                 <!-- Log list -->
                 <Border Grid.Row="1" Margin="0,14,0,0"
-                            Background="#101726"
-                            CornerRadius="12"
-                            Padding="0">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                      HorizontalScrollBarVisibility="Disabled"
-                                      Padding="12">
-                        <StackPanel>
-                            <!-- Demo vài log -->
-                            <TextBlock Text="⚠  Server đã dừng hoạt động"
-                                           Foreground="#FFC95E"
-                                           FontSize="14"
-                                           FontWeight="SemiBold"/>
-                            <TextBlock Text="22:51:44  •  01/12/2025"
-                                           Foreground="{StaticResource TextMuted}"
-                                           FontSize="12"
-                                           Margin="0,4,0,10"/>
+                        Background="#101726"
+                        CornerRadius="12"
+                        Padding="12">
 
-                            <TextBlock Text="ℹ  22:50:10  •  Kết nối từ 192.168.1.10"
-                                           Foreground="{StaticResource TextSub}"
-                                           FontSize="13"
-                                           Margin="0,0,0,4"/>
-                            <TextBlock Text="ℹ  22:49:02  •  Server khởi tạo cấu hình"
-                                           Foreground="{StaticResource TextSub}"
-                                           FontSize="13"
-                                           Margin="0,0,0,4"/>
-
-                            <!-- thêm nhiều log để test scroll -->
-                            <TextBlock Text="ℹ  22:48:30  •  Người dùng 'admin' đăng nhập"
-                                           Foreground="{StaticResource TextSub}"
-                                           FontSize="13"
-                                           Margin="0,0,0,4"/>
-                            <TextBlock Text="ℹ  22:47:12  •  Tải lên file 'backup.zip'"
-                                           Foreground="{StaticResource TextSub}"
-                                           FontSize="13"
-                                           Margin="0,0,0,4"/>
-                            <TextBlock Text="22:51:44  •  01/12/2025"
-           Foreground="{StaticResource TextMuted}"
-           FontSize="12"
-           Margin="0,4,0,10"/>
-
-                            <TextBlock Text="ℹ  22:50:10  •  Kết nối từ 192.168.1.10"
-           Foreground="{StaticResource TextSub}"
-           FontSize="13"
-           Margin="0,0,0,4"/>
-                            <TextBlock Text="ℹ  22:49:02  •  Server khởi tạo cấu hình"
-           Foreground="{StaticResource TextSub}"
-           FontSize="13"
-           Margin="0,0,0,4"/>
-
-                            <!-- thêm nhiều log để test scroll -->
-                            <TextBlock Text="ℹ  22:48:30  •  Người dùng 'admin' đăng nhập"
-           Foreground="{StaticResource TextSub}"
-           FontSize="13"
-           Margin="0,0,0,4"/>
-                            <TextBlock Text="ℹ  22:47:12  •  Tải lên file 'backup.zip'"
-           Foreground="{StaticResource TextSub}"
-           FontSize="13"
-           Margin="0,0,0,4"/>
-                        </StackPanel>
-                    </ScrollViewer>
+                    <TextBox x:Name="logHoatDong"
+                             Background="Transparent"
+                             Foreground="{StaticResource TextSub}"
+                             BorderThickness="0"
+                             IsReadOnly="True"
+                             VerticalScrollBarVisibility="Auto"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True"
+                             FontSize="13"
+                             FontFamily="Consolas"/>
                 </Border>
             </Grid>
         </Border>
