@@ -14,7 +14,7 @@
 
     <Window.Resources>
         <!-- Màu dùng chung -->
-        <SolidColorBrush x:Key="BgDark" Color="#060B18"/>
+        <SolidColorBrush x:Key="BgDark" Color="Red"/>
         <SolidColorBrush x:Key="BgCard" Color="#151C2B"/>
         <SolidColorBrush x:Key="BgCardSoft" Color="#101726"/>
         <SolidColorBrush x:Key="AccentGreen" Color="#25C36F"/>
