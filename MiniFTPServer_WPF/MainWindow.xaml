@@ -22,7 +22,7 @@
         <SolidColorBrush x:Key="AccentPurple" Color="#6C5CE7"/>
         <SolidColorBrush x:Key="DangerRed" Color="#FF5C5C"/>
         <SolidColorBrush x:Key="TextMain" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="TextSub" Color="#B4BAC8"/>
+        <SolidColorBrush x:Key="TextSub" Color="Red"/>
         <SolidColorBrush x:Key="TextMuted" Color="#7E859A"/>
 
         <!-- Card lớn -->
