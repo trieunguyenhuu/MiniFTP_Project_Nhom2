@@ -1,4 +1,5 @@
 ﻿using MiniFtpServer_WPF.Services;
+using MahApps.Metro.IconPacks;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -45,10 +46,16 @@ namespace MiniFTPServer_WPF
 
         private void btnStart_Click(object sender, RoutedEventArgs e)
         {
+            iconServerStatus.Kind = PackIconMaterialKind.Wifi;
+            var greenBrush = (Brush)FindResource("AccentGreen");
+            ellipseServerStatus.Fill = greenBrush;
+            txtServerStatus.Text = "Online";
+            txtServerStatus.Foreground = greenBrush;
             _server.Start();
             btnStart.IsEnabled = false;
             btnStop.IsEnabled = true;
-            lblStatus.Text = "Trạng thái: Đang chạy";
+            lblStatus.Text = "Online";
+            lblStatus.Foreground = greenBrush;
 
             _startTime = DateTime.Now; // Mốc thời gian bắt đầu
             _timer.Start();            // BẮT ĐẦU CHẠY ĐỒNG HỒ
@@ -56,12 +63,18 @@ namespace MiniFTPServer_WPF
 
         private void btnStop_Click(object sender, RoutedEventArgs e)
         {
+            iconServerStatus.Kind = PackIconMaterialKind.WifiOff;
+            var redBrush = (Brush)FindResource("DangerRed");
+            ellipseServerStatus.Fill = redBrush;
+            txtServerStatus.Text = "Offline";
+            txtServerStatus.Foreground = redBrush;
             _server.Stop();
             _timer.Stop();
             txtUptime.Text = "00:00:00";
             btnStart.IsEnabled = true;
             btnStop.IsEnabled = false;
-            lblStatus.Text = "Trạng thái: Đã dừng";
+            lblStatus.Text = "Offline";
+            lblStatus.Foreground = redBrush;
         }
 
         // Hàm này sẽ được FtpServer gọi mỗi khi có người kết nối/ngắt kết nối
