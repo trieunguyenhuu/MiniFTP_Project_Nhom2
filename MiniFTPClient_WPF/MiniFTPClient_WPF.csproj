@@ -9,6 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="anh\eyeclose.png" />
+    <None Remove="anh\eyeopen.png" />
     <None Remove="anh\karina.jpg" />
     <None Remove="anh\pinterest-video.mp4" />
   </ItemGroup>
@@ -23,6 +25,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="anh\eyeclose.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="anh\eyeopen.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="anh\karina.jpg">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
@@ -33,12 +41,6 @@
 
   <ItemGroup>
     <None Update="video\login.mp4">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="anh\eyeclose.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="anh\eyeopen.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="ảnh\karina.jpg">

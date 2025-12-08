@@ -42,7 +42,7 @@ namespace MiniFTPClient_WPF.setting
                 ConfirmPwdPasswordBox.Visibility = Visibility.Collapsed;
 
                 ConfirmPwdEyeIcon.Source = new BitmapImage(
-                    new Uri("/anh/eyeopen.png"));
+                    new Uri("pack://application:,,,/MiniFTPClient_WPF;component/anh/eyeopen.png"));
             }
             else
             {
@@ -51,7 +51,7 @@ namespace MiniFTPClient_WPF.setting
                 ConfirmPwdPasswordBox.Visibility = Visibility.Visible;
 
                 ConfirmPwdEyeIcon.Source = new BitmapImage(
-                    new Uri("/anh/eyeclose.png"));
+                    new Uri("pack://application:,,,/MiniFTPClient_WPF;component/anh/eyeclose.png"));
             }
 
             UpdateConfirmPwdPlaceholder();
