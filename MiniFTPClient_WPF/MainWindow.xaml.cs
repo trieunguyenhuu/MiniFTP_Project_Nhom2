@@ -15,9 +15,6 @@ using System.Windows.Shapes;
 
 namespace MiniFTPClient_WPF
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
@@ -26,30 +23,33 @@ namespace MiniFTPClient_WPF
             MainFrame.Navigate(new MiniFTPClient_WPF.home.Page1());
         }
 
+        private void SetHeader(string title)
+        {
+            HeaderTitle.Text = title;
+        }
+
         private void trangchu_Click(object sender, RoutedEventArgs e)
         {
             MainFrame.Navigate(new Page1());
-        }
-
-
-        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            SearchPlaceholder.Visibility = string.IsNullOrWhiteSpace(SearchBox.Text) ? Visibility.Visible : Visibility.Collapsed;
+            SetHeader("Trang chủ");
         }
 
         private void tinnhan_Click(object sender, RoutedEventArgs e)
         {
             MainFrame.Navigate(new Tinnhan());
+            SetHeader("Tin nhắn");
         }
 
         private void thungrac_Click(object sender, RoutedEventArgs e)
         {
             MainFrame.Navigate(new Thungrac());
+            SetHeader("Thùng rác");
         }
 
         private void setting_Click(object sender, RoutedEventArgs e)
         {
             MainFrame.Navigate(new Setting());
+            SetHeader("Cài đặt");
         }
     }
 }

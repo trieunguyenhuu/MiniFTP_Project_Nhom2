@@ -23,6 +23,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="anh\karina.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="anh\pinterest-video.mp4">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>

@@ -352,7 +352,7 @@
 
                                     <Image x:Name="PassEyeIcon"
                                            Grid.Column="1"
-                                           Source="/ảnh/eyeclose.png"
+                                           Source="/anh/eyeclose.png"
                                            Width="20" Height="20"
                                            Margin="8,0,0,0"
                                            VerticalAlignment="Center"
@@ -508,7 +508,7 @@
                                     <!-- Icon mắt -->
                                     <Image x:Name="NewPassEyeIcon"
                                            Grid.Column="1"
-                                           Source="/ảnh/eyeclose.png"
+                                           Source="/anh/eyeclose.png"
                                            Width="20" Height="20"
                                            Margin="8,0,0,0"
                                            VerticalAlignment="Center"
@@ -574,7 +574,7 @@
                                     <!-- Icon mắt -->
                                     <Image x:Name="ConfirmPassEyeIcon"
                                            Grid.Column="1"
-                                           Source="/ảnh/eyeclose.png"
+                                           Source="/anh/eyeclose.png"
                                            Width="20" Height="20"
                                            Margin="8,0,0,0"
                                            VerticalAlignment="Center"

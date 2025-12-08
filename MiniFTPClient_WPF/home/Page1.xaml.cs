@@ -10,15 +10,14 @@ using System.Windows.Media;
 
 namespace MiniFTPClient_WPF.home
 {
-    /// <summary>
-    /// Interaction logic for Page1.xaml
-    /// </summary>
-    /// 
     public partial class Page1 : Page
     {
         // Exposed collections for binding
         public ObservableCollection<string> Breadcrumbs { get; } = new ObservableCollection<string>();
         public ObservableCollection<FileItem> Files { get; } = new ObservableCollection<FileItem>();
+
+        // 🔹 Danh sách người dùng mẫu
+        private readonly ObservableCollection<UserItem> _users = new ObservableCollection<UserItem>();
 
         private string _selectedFilePath = null;
 
@@ -26,28 +25,33 @@ namespace MiniFTPClient_WPF.home
         {
             InitializeComponent();
 
-            // set DataContext so XAML bindings work
             this.DataContext = this;
 
-            // init breadcrumb and file list
             Breadcrumbs.Add("Home");
             LoadFilesFor("Home");
+
+            // 🔹 Khởi tạo list người dùng & bind vào RecipientList
+            InitSampleUsers();
+            RecipientList.ItemsSource = _users;
+
+            UpdateShareButtonState();
         }
-        // CLICK 1 LẦN: nếu folder -> navigate into
+
+
+        // =========================================================
+        // BREADCRUMB + FILE LIST
+        // =========================================================
+
         private void FileListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (FileListBox.SelectedItem is FileItem item && item.IsFolder)
             {
-                // folder names in our demo may include trailing '/', remove it when storing breadcrumb
                 var folderName = item.Name.TrimEnd('/');
                 NavigateInto(folderName);
-
-                // Optional: Bỏ selection để có thể click lại cùng folder
                 FileListBox.SelectedItem = null;
             }
         }
 
-        // Click on breadcrumb to navigate up
         private void Breadcrumb_Click(object sender, MouseButtonEventArgs e)
         {
             if (sender is TextBlock tb)
@@ -61,14 +65,12 @@ namespace MiniFTPClient_WPF.home
             }
         }
 
-        // Add crumb and load files
         private void NavigateInto(string folderName)
         {
             Breadcrumbs.Add(folderName);
             LoadFilesFor(folderName);
         }
 
-        // Keep breadcrumbs up to index and reload files
         private void NavigateToBreadcrumb(int index)
         {
             while (Breadcrumbs.Count - 1 > index)
@@ -78,7 +80,6 @@ namespace MiniFTPClient_WPF.home
             LoadFilesFor(current);
         }
 
-        // Demo: load files for a "location". Replace with FTP or real data retrieval as needed.
         private void LoadFilesFor(string location)
         {
             Files.Clear();
@@ -87,6 +88,18 @@ namespace MiniFTPClient_WPF.home
             {
                 Files.Add(new FileItem("Work/", true));
                 Files.Add(new FileItem("Personal/", true));
+
+                Files.Add(new FileItem("Documents/", true));
+                Files.Add(new FileItem("Downloads/", true));
+                Files.Add(new FileItem("Music/", true));
+                Files.Add(new FileItem("Videos/", true));
+                Files.Add(new FileItem("Pictures/", true));
+                Files.Add(new FileItem("Projects/", true));
+                Files.Add(new FileItem("Archive/", true));
+                Files.Add(new FileItem("Backup/", true));
+                Files.Add(new FileItem("Temp/", true));
+                Files.Add(new FileItem("Shared/", true));
+
                 Files.Add(new FileItem("report_2024.docx", false, "145 KB"));
                 Files.Add(new FileItem("presentation.pptx", false, "3.2 MB"));
             }
@@ -102,7 +115,6 @@ namespace MiniFTPClient_WPF.home
             }
             else if (location == "photos")
             {
-                // example deeper folder
                 Files.Add(new FileItem("IMG_001.jpg", false, "2.1 MB"));
                 Files.Add(new FileItem("IMG_002.jpg", false, "1.9 MB"));
             }
@@ -129,116 +141,150 @@ namespace MiniFTPClient_WPF.home
             }
         }
 
+        // 🔹 Model người dùng
+        public class UserItem
+        {
+            public string Name { get; set; } = "";
+
+            public string AvatarPath { get; set; } = "";
+
+        }
+
+        // 🔹 Tạo dữ liệu người dùng mẫu
+        private void InitSampleUsers()
+        {
+            _users.Add(new UserItem
+            {
+                Name = "Kiều Dung",
+                AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
+            });
+            _users.Add(new UserItem
+            {
+                Name = "Sly 🐰",
+                AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
+            });
+            _users.Add(new UserItem
+            {
+                Name = "Mai Kiều Trang",
+                AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
+            });
+            _users.Add(new UserItem
+            {
+                Name = "thuận ngu",
+                AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
+            });
+            _users.Add(new UserItem
+            {
+                Name = "Hà Thủy",
+                AvatarPath = "/anh/karina.jpg"
+            });
+
+            // ... thêm mấy user khác nếu muốn, có thể dùng chung ảnh
+        }
+
+
+        // =========================================================
+        // SHARE PANEL
+        // =========================================================
+
         private void BtnShare_Click(object sender, RoutedEventArgs e)
         {
-            // show overlay + panel
             Overlay.Visibility = Visibility.Visible;
-            Panel.SetZIndex(Overlay, 999);          // overlay phía dưới panel
+            Panel.SetZIndex(Overlay, 999);
             Panel.SetZIndex(SharePanel, 1000);
             SharePanel.Visibility = Visibility.Visible;
 
-            // focus recipient
-            TxtRecipient.Focus();
+            // focus list người nhận
+            RecipientList.Focus();
 
-            // cập nhật trạng thái nút
             UpdateShareButtonState();
         }
 
         private void CloseSharePanel_Click(object sender, RoutedEventArgs e)
         {
-            // 1) Ẩn panel và overlay
             SharePanel.Visibility = Visibility.Collapsed;
             Overlay.Visibility = Visibility.Collapsed;
 
-            // 2) Reset ZIndex để tránh trường hợp overlay vẫn chặn tương tác
             Panel.SetZIndex(SharePanel, 0);
             Panel.SetZIndex(Overlay, 0);
 
-            // 3) (tuỳ bạn) reset form fields / trạng thái
             _selectedFilePath = null;
             TxtSelectedFile.Text = "(Chưa chọn file)";
-            TxtRecipient.Text = string.Empty;
 
             BtnDoShare.IsEnabled = false;
+            RecipientList.SelectedItem = null;
         }
 
         private void Overlay_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            // khi click ra ngoài overlay thì đóng panel (và ẩn overlay)
             CloseSharePanel_Click(sender, null);
         }
 
-
-        // Khi người nhận thay đổi nội dung -> cập nhật trạng thái nút chia sẻ
-        private void TxtRecipient_TextChanged(object sender, TextChangedEventArgs e)
+        // 🔹 Khi chọn người nhận trong ListBox
+        private void RecipientList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             UpdateShareButtonState();
         }
 
-        // Bật/tắt nút Chia sẻ theo điều kiện: có file + có tên người nhận
+        // 🔹 Bật/tắt nút Chia sẻ: cần có file + có người nhận
         private void UpdateShareButtonState()
         {
-            bool hasRecipient = !string.IsNullOrWhiteSpace(TxtRecipient.Text);
-            BtnDoShare.IsEnabled = hasRecipient;
+            bool hasRecipient = RecipientList.SelectedItem != null;
+            bool hasFile = !string.IsNullOrWhiteSpace(TxtSelectedFile.Text)
+                           && TxtSelectedFile.Text != "(Chưa chọn file)";
+            BtnDoShare.IsEnabled = hasRecipient && hasFile;
         }
 
-        // Xử lý hành động chia sẻ (demo): ở đây bạn sẽ gọi logic gửi file...
         private void BtnDoShare_Click(object sender, RoutedEventArgs e)
         {
-            // Lấy dữ liệu
-            var filePath = _selectedFilePath;
-            var recipient = TxtRecipient.Text.Trim();
+            if (RecipientList.SelectedItem is not UserItem user)
+            {
+                MessageBox.Show("Vui lòng chọn người nhận.");
+                return;
+            }
 
-            // Demo: hiển thị messagebox. Thay chỗ này bằng logic thực tế (upload, gửi mail...)
-            MessageBox.Show($"Chia sẻ file:\n\nFile: {System.IO.Path.GetFileName(filePath)}\nNgười nhận: {recipient}",
-                            "Chia sẻ", MessageBoxButton.OK, MessageBoxImage.Information);
+            var fileName = TxtSelectedFile.Text;
+            if (string.IsNullOrWhiteSpace(fileName) || fileName == "(Chưa chọn file)")
+            {
+                MessageBox.Show("Vui lòng chọn file để chia sẻ.");
+                return;
+            }
 
-            // Đóng panel sau khi chia sẻ
-            CloseSharePanel_Click(sender, null);
+            MessageBox.Show(
+                $"Chia sẻ file:\n\nFile: {fileName}\nNgười nhận: {user.Name}",
+                "Chia sẻ",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+
+            CloseSharePanel_Click(sender, e);
         }
-
 
         private void ShowShareFor(FileItem file)
         {
             if (file == null) return;
 
-            // nếu bạn có đường dẫn thực của file từ FTP hoặc local, gán vào _selectedFilePath
-            // Ở demo này chỉ lưu tên file để hiển thị; nếu cần đường dẫn đầy đủ, gán _selectedFilePath tương ứng
-            _selectedFilePath = null; // nếu không có path thực
+            _selectedFilePath = null;
             TxtSelectedFile.Text = file.Name;
 
-            // nếu file là ảnh (theo phần mở rộng), hiển thị preview demo (dùng file bạn đã upload)
             var lower = file.Name?.ToLower() ?? "";
-            bool isImage = lower.EndsWith(".png") || lower.EndsWith(".jpg") || lower.EndsWith(".jpeg") || lower.EndsWith(".gif");
+            bool isImage = lower.EndsWith(".png") || lower.EndsWith(".jpg") ||
+                           lower.EndsWith(".jpeg") || lower.EndsWith(".gif");
+
             if (isImage)
             {
-                // nếu bạn có Image control trong SharePanel, gán source ở đây
-                // ví dụ: SharePreviewImage.Source = new BitmapImage(new Uri("file:///mnt/data/bf3c4751-8c00-4dbf-bc20-60ffb4361a21.png"));
-                // Nhưng trong cấu trúc hiện tại bạn chỉ cần hiển thị tên file.
                 try
                 {
-                    // demo: gán SelectedFilePath tới local demo image (theo dev instruction)
                     _selectedFilePath = "/mnt/data/bf3c4751-8c00-4dbf-bc20-60ffb4361a21.png";
-                    // nếu bạn có Image control tên SharePreviewImage, uncomment sau:
-                    // SharePreviewImage.Source = new BitmapImage(new Uri("file:///mnt/data/bf3c4751-8c00-4dbf-bc20-60ffb4361a21.png"));
-                    // SharePreviewImage.Visibility = Visibility.Visible;
                 }
-                catch { /* ignore preview errors in demo */ }
-            }
-            else
-            {
-                // nếu không, ẩn preview (nếu có control)
-                // SharePreviewImage.Visibility = Visibility.Collapsed;
+                catch { }
             }
 
-            // show overlay + panel (giữ logic bạn đã có)
             Overlay.Visibility = Visibility.Visible;
             Panel.SetZIndex(SharePanel, 1000);
             SharePanel.Visibility = Visibility.Visible;
 
-            // focus vào recipient để người dùng nhập nhanh
-            TxtRecipient.Focus();
-
+            RecipientList.Focus();
+            UpdateShareButtonState();
         }
 
         private static T VisualUpwardSearch<T>(DependencyObject source) where T : DependencyObject
@@ -250,7 +296,6 @@ namespace MiniFTPClient_WPF.home
             return source as T;
         }
 
-        // Bắt sự kiện nhấn chuột phải trên ListBox -> chọn item và hiện ContextMenu tại chuột
         private void FileListBox_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             var dep = (DependencyObject)e.OriginalSource;
@@ -258,44 +303,39 @@ namespace MiniFTPClient_WPF.home
 
             if (item != null)
             {
-                // đảm bảo ListBox chọn đúng item dưới chuột
                 item.IsSelected = true;
-
-                // ngăn ListBox xử lý tiếp (nếu cần)
                 e.Handled = true;
 
-                // Lấy FileItem từ DataContext của item
                 if (item.DataContext is FileItem file)
                 {
-                    // Tạo context menu động
                     var cm = new ContextMenu();
 
-                    // Share menu item
-                    var miShare = new MenuItem {
-                        Header = "Chia sẻ",
-                        //Style = (Style)FindResource("FooterCancelButton")
-                    };
+                    var miShare = new MenuItem { Header = "Chia sẻ" };
                     miShare.Click += (s, args) =>
                     {
-                        // gọi mở share cho file được chọn
                         ShowShareFor(file);
                     };
                     cm.Items.Add(miShare);
 
-                    // (Tùy chọn) thêm menu khác, ví dụ Delete, Download...
                     var miDownload = new MenuItem { Header = "Tải xuống" };
                     miDownload.Click += (s, args) =>
                     {
-                       
+                        // TODO: xử lý tải xuống
                     };
                     cm.Items.Add(miDownload);
 
-                    // Hiển thị context menu tại vị trí chuột
                     cm.Placement = PlacementMode.MousePoint;
                     cm.IsOpen = true;
                 }
             }
         }
 
+        private void SearchBox1_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            SearchPlaceholder1.Visibility =
+                string.IsNullOrWhiteSpace(SearchBox1.Text)
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+        }
     }
 }
