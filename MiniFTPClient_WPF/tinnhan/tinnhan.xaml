@@ -526,6 +526,7 @@
                                                 CornerRadius="20"
                                                 Background="#E5E7EB"
                                                 VerticalAlignment="Top">
+                                            <!--#region avatar-->
                                             <TextBlock Text="{Binding Initial}"
                                                        HorizontalAlignment="Center"
                                                        VerticalAlignment="Center"
