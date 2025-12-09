@@ -218,7 +218,7 @@
                 <Button Grid.Row="1"
                             Content="🗑  Làm trống thùng rác"
                             Style="{StaticResource DangerButtonStyle}"
-                            Click="EmptyBin_Click" HorizontalAlignment="Right"/>
+                            HorizontalAlignment="Right"/>
                 <StackPanel Grid.Row="2"
                             Orientation="Horizontal"
                             Margin="0,0,0,16">
@@ -231,15 +231,11 @@
                     <Button x:Name="RestoreButton"
                             Content="↺  Khôi phục"
                             Style="{StaticResource PrimaryButtonStyle}"
-                            Margin="0,0,10,0"
-                            Click="Restore_Click"
-                            IsEnabled="False"/>
+                            Margin="0,0,10,0"/>
 
                     <Button x:Name="DeleteForeverButton"
                             Content="🗑️  Xóa vĩnh viễn"
-                            Style="{StaticResource DangerButtonStyle}"
-                            Click="DeleteForever_Click"
-                            IsEnabled="False"/>
+                            Style="{StaticResource DangerButtonStyle}"/>
                 </StackPanel>
 
                 <!-- BẢNG DỮ LIỆU -->
@@ -252,8 +248,6 @@
                               GridLinesVisibility="None"
                               Background="Transparent"
                               BorderThickness="0"
-                              RowBackground="White"
-                              AlternatingRowBackground="#F9FAFB"
                               CanUserAddRows="False"
                               CanUserDeleteRows="False"
                               CanUserResizeRows="False"
@@ -275,36 +269,37 @@
                                     <Setter.Value>
                                         <ControlTemplate TargetType="DataGridRow">
                                             <Border x:Name="BackgroundBorder"
-                                                    Background="{TemplateBinding Background}">
+                        Background="{TemplateBinding Background}">
                                                 <Grid>
-
                                                     <Border x:Name="SelectedIndicator"
-                                                            Width="4"
-                                                            Background="#4F46E5"
-                                                            HorizontalAlignment="Left"
-                                                            Visibility="Collapsed"
-                                                            CornerRadius="2"/>
-
+                                Width="4"
+                                Background="#4F46E5"
+                                HorizontalAlignment="Left"
+                                Visibility="Collapsed"
+                                CornerRadius="2"/>
                                                     <DataGridCellsPresenter Margin="0"/>
                                                 </Grid>
                                             </Border>
 
                                             <ControlTemplate.Triggers>
+                                                <!-- Hover: xám nhạt -->
                                                 <Trigger Property="IsMouseOver" Value="True">
                                                     <Setter TargetName="BackgroundBorder"
-                                                            Property="Background"
-                                                            Value="#F3F4FF"/>
+                                Property="Background"
+                                Value="#E5E7EB"/>
+                                                    <!-- xám nhạt -->
                                                 </Trigger>
 
+                                                <!-- Được chọn: xanh -->
                                                 <Trigger Property="IsSelected" Value="True">
                                                     <Setter TargetName="BackgroundBorder"
-                                                            Property="Background"
-                                                            Value="#E0EAFF"/>
+                                Property="Background"
+                                Value="#DBEAFE"/>
+                                                    <!-- xanh nhạt kiểu Windows -->
                                                     <Setter TargetName="SelectedIndicator"
-                                                            Property="Visibility"
-                                                            Value="Visible"/>
+                                Property="Visibility"
+                                Value="Visible"/>
                                                 </Trigger>
-
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Setter.Value>
@@ -349,14 +344,16 @@
                             <DataGridTemplateColumn Width="45">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                                  HorizontalAlignment="Center"
-                                                  VerticalAlignment="Center"
-                                                  Checked="RowCheckBox_Changed"
-                                                  Unchecked="RowCheckBox_Changed"/>
+                                        <CheckBox
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                IsChecked="{Binding IsSelected,
+                                    RelativeSource={RelativeSource AncestorType=DataGridRow},
+                                    Mode=TwoWay}" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
+
 
                             <DataGridTemplateColumn Header="Tên File" Width="2.2*">
                                 <DataGridTemplateColumn.CellTemplate>

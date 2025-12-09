@@ -312,6 +312,20 @@
             </Setter>
         </Style>
 
+        <Style x:Key="InputBorderFocusStyle" TargetType="Border">
+            <!-- Mặc định -->
+            <Setter Property="BorderBrush" Value="#CDD3D8"/>
+            <Setter Property="BorderThickness" Value="1"/>
+
+            <Style.Triggers>
+                <!-- Khi có focus bên trong -->
+                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                    <Setter Property="BorderBrush" Value="#5A7CFF"/>
+                    <!-- xanh biển -->
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
     </Page.Resources>
 
     <!-- NỀN TỔNG -->
@@ -338,13 +352,12 @@
                 <!-- Thông tin cá nhân -->
                 <RadioButton Grid.Column="0" x:Name="NavProfile"
                              Content="Thông tin cá nhân"
-                             
+                             IsChecked="True"
                              Style="{StaticResource TabTextStyle}"/>
 
                 <!-- Bảo mật -->
                 <RadioButton Grid.Column="1" x:Name="NavSecurity"
                              Margin="30,0,0,0"
-                             IsChecked="True"
                              Content="Bảo mật"
                              Style="{StaticResource TabTextStyle}"/>
             </Grid>
@@ -363,23 +376,23 @@
                     <StackPanel Orientation="Horizontal"
                         Margin="0,0,0,18"
                         VerticalAlignment="Center">
-                        <Border Width="44" Height="44"
+                        <Border Width="50" Height="50"
                         CornerRadius="16"
                         Background="#4F46E5"
                         Margin="0,0,12,0">
                             <Icon:PackIconMaterial Kind="Account"
-                               Width="20" Height="20"
+                               Width="22" Height="22"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Foreground="White"/>
                         </Border>
                         <StackPanel>
                             <TextBlock Text="Thông tin cá nhân"
-                               FontSize="20"
+                               FontSize="22"
                                FontWeight="SemiBold"
                                Foreground="#111827"/>
                             <TextBlock Text="Cập nhật thông tin và ảnh đại diện"
-                               FontSize="13"
+                               FontSize="16"
                                Foreground="#6B7280"/>
                         </StackPanel>
                     </StackPanel>
@@ -511,7 +524,7 @@
                     </Grid>
 
                     <!-- Nút lưu -->
-                    <Button Content="Lưu thay đổi" Margin="0,50,0,0"
+                    <Button Content="Lưu thay đổi" Margin="0,20,0,0"
                     Style="{StaticResource PrimaryButtonStyle}"
                     HorizontalAlignment="Center"/>
                 </StackPanel>
@@ -526,12 +539,12 @@
                     <StackPanel Orientation="Horizontal"
                         Margin="0,0,0,18"
                         VerticalAlignment="Center">
-                        <Border Width="44" Height="44"
+                        <Border Width="50" Height="50"
                                 CornerRadius="16"
                                 Background="#DC2626"
                                 Margin="0,0,12,0">
                             <Icon:PackIconMaterial Kind="Lock"
-                                                   Width="20" Height="20"
+                                                   Width="22" Height="22"
                                                    HorizontalAlignment="Center"
                                                    VerticalAlignment="Center"
                                                    Foreground="White"/>
@@ -542,53 +555,169 @@
                                        FontWeight="SemiBold"
                                        Foreground="#111827"/>
                             <TextBlock Text="Quản lý mật khẩu"
-                                       FontSize="14"
+                                       FontSize="16"
                                        Foreground="#6B7280"/>
                         </StackPanel>
                     </StackPanel>
 
                     <!-- ĐỔI MẬT KHẨU -->
                         <StackPanel>
-                            <TextBlock Text="Đổi mật khẩu"
+                        <TextBlock Text="Đổi mật khẩu"
                                FontWeight="SemiBold"
-                               FontSize="20"
-                               Margin="0,0,0,8"/>
+                               FontSize="22"
+                               Margin="0,10,0,25"/>
 
-                            <StackPanel Margin="0,0,0,8">
-                                <TextBlock Text="Mật khẩu hiện tại"
-                                   FontSize="13"
-                                   Foreground="#6B7280"/>
-                                <PasswordBox Height="44" Padding="12,0"/>
-                            </StackPanel>
+                        <StackPanel Margin="0,0,0,16">
+                            <TextBlock Text="Mật khẩu hiện tại"
+                                       FontSize="18"
+                                       Foreground="#6B7280"
+                                       FontWeight="SemiBold"
+                                       Margin="5,0,0,4"/>
 
-                            <Grid Margin="0,0,0,12">
+                            <Border Background="#F8FAFC"
+                                    CornerRadius="10"
+                                    Padding="10,6"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Stretch"
+                                    Style="{StaticResource InputBorderFocusStyle}">
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- PasswordBox nhập thật -->
+                                    <PasswordBox x:Name="CurPwdPasswordBox"
+                                                 Grid.Column="0"
+                                                 Background="Transparent"
+                                                 BorderThickness="0"
+                                                 FontSize="16"
+                                                 Padding="2"
+                                                 VerticalAlignment="Center"
+                                                 Foreground="#1F2937"
+                                                 PasswordChanged="CurPwdPasswordBox_PasswordChanged"/>
+
+                                    <!-- Text hiển thị khi bật mắt -->
+                                    <TextBox x:Name="CurPwdVisibleBox"
+                                                     Grid.Column="0"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     FontSize="16"
+                                                     Padding="2"
+                                                     VerticalAlignment="Center"
+                                                     Foreground="#1F2937"
+                                                     Visibility="Collapsed"
+                                                     TextChanged="CurPwdVisibleBox_TextChanged"/>
+
+                                    <!-- Placeholder -->
+                                    <TextBlock x:Name="CurPwdPlaceholder"
+                                               Grid.Column="0"
+                                               Text=" Nhập mật khẩu"
+                                               FontSize="16"
+                                               Foreground="#6B7280"
+                                               VerticalAlignment="Center"
+                                               Margin="2,0,0,0"
+                                               IsHitTestVisible="False"/>
+
+                                    <!-- Icon mắt -->
+                                    <Image x:Name="CurPwdEyeIcon"
+                                                   Grid.Column="1"
+                                                   Source="/anh/eyeclose.png"
+                                                   Width="20" Height="20"
+                                                   Margin="8,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   Cursor="Hand"
+                                                   MouseLeftButtonUp="CurPwd_ToggleEye"/>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <Grid Margin="0,0,0,12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="20"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                                    <TextBlock Text="Mật khẩu mới"
-                                       FontSize="13"
-                                       Foreground="#6B7280"/>
-                                    <PasswordBox Height="44" Padding="12,0"/>
-                                </StackPanel>
+                            <StackPanel Margin="0,0,0,16">
+                                <TextBlock Text="Mật khẩu mới"
+                                           FontSize="18"
+                                           Foreground="#6B7280"
+                                           FontWeight="SemiBold"
+                                           Margin="5,0,0,4"/>
 
-                                <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                <Border Background="#F8FAFC"
+                                        CornerRadius="10"
+                                        Padding="10,6"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Stretch"
+                                        Style="{StaticResource InputBorderFocusStyle}">
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- PasswordBox nhập thật -->
+                                        <PasswordBox x:Name="NewPwdPasswordBox"
+                                                     Grid.Column="0"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     FontSize="16"
+                                                     Padding="2"
+                                                     VerticalAlignment="Center"
+                                                     Foreground="#1F2937"
+                                                     PasswordChanged="NewPwdPasswordBox_PasswordChanged"/>
+
+                                        <!-- TextBox hiển thị khi bật mắt -->
+                                        <TextBox x:Name="NewPwdVisibleBox"
+                                                 Grid.Column="0"
+                                                 Background="Transparent"
+                                                 BorderThickness="0"
+                                                 FontSize="16"
+                                                 Padding="2"
+                                                 VerticalAlignment="Center"
+                                                 Foreground="#1F2937"
+                                                 Visibility="Collapsed"
+                                                 TextChanged="NewPwdVisibleBox_TextChanged"/>
+
+                                        <!-- Placeholder -->
+                                        <TextBlock x:Name="NewPwdPlaceholder"
+                                                   Grid.Column="0"
+                                                   Text=" Nhập mật khẩu mới"
+                                                   FontSize="16"
+                                                   Foreground="#6B7280"
+                                                   VerticalAlignment="Center"
+                                                   Margin="2,0,0,0"
+                                                   IsHitTestVisible="False"/>
+
+                                        <!-- Icon mắt -->
+                                        <Image x:Name="NewPwdEyeIcon"
+                                               Grid.Column="1"
+                                               Source="/anh/eyeclose.png"
+                                               Width="20" Height="20"
+                                               Margin="8,0,0,0"
+                                               VerticalAlignment="Center"
+                                               Cursor="Hand"
+                                               MouseLeftButtonUp="NewPwd_ToggleEye"/>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Margin="10,0,0,0">
                                 <TextBlock Text="Xác nhận mật khẩu"
                                            Foreground="#6B7280"
-                                           FontSize="16"
+                                           FontSize="18"
                                            FontWeight="SemiBold"/>
 
                                 <Border Background="#F8FAFC"
                                         CornerRadius="10"
                                         Padding="10,6"
                                         VerticalAlignment="Center"
-                                        HorizontalAlignment="Left"
-                                        Width="256"
-                                        BorderBrush="#CDD3D8"
-                                        BorderThickness="1"
-                                        Margin="0,5,0,20">
+                                        HorizontalAlignment="Stretch"
+                                        Margin="0,5,0,20" Style="{StaticResource InputBorderFocusStyle}">
 
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -601,7 +730,7 @@
                                                              Grid.Column="0"
                                                              Background="Transparent"
                                                              BorderThickness="0"
-                                                             FontSize="14"
+                                                             FontSize="16"
                                                              Padding="2"
                                                              VerticalAlignment="Center"
                                                              Foreground="#1F2937"
@@ -612,7 +741,7 @@
                                                  Grid.Column="0"
                                                  Background="Transparent"
                                                  BorderThickness="0"
-                                                 FontSize="14"
+                                                 FontSize="16"
                                                  Padding="2"
                                                  VerticalAlignment="Center"
                                                  Foreground="#1F2937"
@@ -623,7 +752,7 @@
                                         <TextBlock x:Name="ConfirmPwdPlaceholder"
                                                    Grid.Column="0"
                                                    Text=" Nhập lại mật khẩu"
-                                                   FontSize="14"
+                                                   FontSize="16"
                                                    Foreground="#6B7280"
                                                    VerticalAlignment="Center"
                                                    Margin="2,0,0,0"
@@ -643,9 +772,9 @@
                             </StackPanel>
                             </Grid>
 
-                            <Button Content="Cập nhật mật khẩu"
+                            <Button Content="Cập nhật"
                             Style="{StaticResource PrimaryButtonStyle}"
-                            HorizontalAlignment="Right"/>
+                            HorizontalAlignment="Center"/>
                         </StackPanel>
                 </StackPanel>
             </Grid>

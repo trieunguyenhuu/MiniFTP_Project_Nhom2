@@ -30,7 +30,7 @@ namespace MiniFTPClient_WPF.thungrac
         {
             InitializeComponent();
             LoadSampleData();
-            UpdateButtonsState();
+
         }
 
         // --- Tải dữ liệu mẫu ---
@@ -51,74 +51,6 @@ namespace MiniFTPClient_WPF.thungrac
             };
 
             TrashGrid.ItemsSource = _items;
-        }
-
-        // --- Cập nhật nút khi tick chọn ---
-        private void RowCheckBox_Changed(object sender, RoutedEventArgs e)
-        {
-            UpdateButtonsState();
-        }
-
-        private void UpdateButtonsState()
-        {
-            int count = _items.Count(i => i.IsSelected);
-            bool any = count > 0;
-
-            SelectedInfoButton.IsEnabled = any;
-            RestoreButton.IsEnabled = any;
-            DeleteForeverButton.IsEnabled = any;
-
-            SelectedInfoButton.Content = any
-                ? $"{count} mục được chọn"
-                : "0 mục được chọn";
-        }
-
-        // --- Làm trống toàn bộ ---
-        private void EmptyBin_Click(object sender, RoutedEventArgs e)
-        {
-            if (MessageBox.Show("Bạn có chắc muốn làm trống toàn bộ thùng rác?",
-                                 "Xác nhận",
-                                 MessageBoxButton.YesNo,
-                                 MessageBoxImage.Warning) == MessageBoxResult.Yes)
-            {
-                _items.Clear();
-                UpdateButtonsState();
-            }
-        }
-
-        // --- Khôi phục ---
-        private void Restore_Click(object sender, RoutedEventArgs e)
-        {
-            var selectedItems = _items.Where(i => i.IsSelected).ToList();
-            if (!selectedItems.Any()) return;
-
-            MessageBox.Show($"Khôi phục {selectedItems.Count} mục (DEMO)",
-                            "Khôi phục",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
-
-            foreach (var item in selectedItems)
-                _items.Remove(item);
-
-            UpdateButtonsState();
-        }
-
-        // --- Xóa vĩnh viễn ---
-        private void DeleteForever_Click(object sender, RoutedEventArgs e)
-        {
-            var selectedItems = _items.Where(i => i.IsSelected).ToList();
-            if (!selectedItems.Any()) return;
-
-            if (MessageBox.Show($"Bạn có chắc muốn xóa vĩnh viễn {selectedItems.Count} mục?",
-                                 "Cảnh báo",
-                                 MessageBoxButton.YesNo,
-                                 MessageBoxImage.Error) == MessageBoxResult.Yes)
-            {
-                foreach (var item in selectedItems)
-                    _items.Remove(item);
-            }
-
-            UpdateButtonsState();
         }
 
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
