@@ -8,7 +8,6 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
 
 using MiniFTPClient_WPF.Models;
 using MiniFTPClient_WPF.Services;
@@ -17,52 +16,47 @@ namespace MiniFTPClient_WPF.home
 {
     public partial class Page1 : Page
     {
-        // Sử dụng FileItem từ Models
         public ObservableCollection<string> Breadcrumbs { get; } = new ObservableCollection<string>();
         public ObservableCollection<FileItem> Files { get; } = new ObservableCollection<FileItem>();
 
-        // 🔹 Danh sách người dùng mẫu (UI giả lập)
         private readonly ObservableCollection<UserItem> _users = new ObservableCollection<UserItem>();
-
         private string _selectedFilePath = null;
+        private bool _isLoading = false;
 
         public Page1()
         {
             InitializeComponent();
-
             this.DataContext = this;
 
-            // Khởi tạo Breadcrumb
             Breadcrumbs.Add("Home");
-
             _ = LoadFilesFromServer();
-
             InitSampleUsers();
             RecipientList.ItemsSource = _users;
-
             UpdateShareButtonState();
         }
 
-        // --- HÀM TẢI DỮ LIỆU TỪ SERVER ---
+        // ==================== TẢI DỮ LIỆU TỪ SERVER ====================
         private async Task LoadFilesFromServer()
         {
+            if (_isLoading) return; // Tránh gọi nhiều lần
+            _isLoading = true;
+
             try
             {
-                // Xóa danh sách cũ
+                // Disable các nút trong lúc loading
+                SetButtonsEnabled(false);
+
                 Files.Clear();
 
-                // Kiểm tra kết nối trước
                 if (!FtpClientService.Instance.IsConnected)
                 {
-                    // Nếu chưa kết nối (ví dụ chạy thẳng vào trang Home mà ko qua Login), báo lỗi nhẹ
-                    // Hoặc bạn có thể để trống để tránh crash
+                    MessageBox.Show("Chưa kết nối tới server", "Cảnh báo",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
-                // Gọi Service lấy list từ Server
                 var svFiles = await FtpClientService.Instance.GetListingAsync();
 
-                // Đổ dữ liệu vào giao diện
                 foreach (var f in svFiles)
                 {
                     Files.Add(f);
@@ -70,24 +64,30 @@ namespace MiniFTPClient_WPF.home
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Không thể tải danh sách file: " + ex.Message);
+                MessageBox.Show($"Không thể tải danh sách file:\n{ex.Message}",
+                    "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                _isLoading = false;
+                SetButtonsEnabled(true);
             }
         }
 
-        // =========================================================
-        // BREADCRUMB + FILE LIST NAVIGATION
-        // =========================================================
+        // ==================== HELPER: BẬT/TẮT CÁC NÚT ====================
+        private void SetButtonsEnabled(bool enabled)
+        {
+            if (btnUpload != null) btnUpload.IsEnabled = enabled;
+            if (BtnRefresh != null) BtnRefresh.IsEnabled = enabled;
+        }
 
+        // ==================== BREADCRUMB & NAVIGATION ====================
         private void FileListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Xử lý khi click vào item
-            // Nếu là Folder -> Đi vào trong (Navigate)
             if (FileListBox.SelectedItem is FileItem item && item.IsFolder)
             {
                 var folderName = item.Name.TrimEnd('/');
                 NavigateInto(folderName);
-
-                // Reset selection để có thể click lại folder đó nếu muốn
                 FileListBox.SelectedItem = null;
             }
         }
@@ -107,28 +107,19 @@ namespace MiniFTPClient_WPF.home
 
         private void NavigateInto(string folderName)
         {
-            // Thêm vào đường dẫn
             Breadcrumbs.Add(folderName);
-
-            // TODO: Ở các bước sau, bạn cần bổ sung hàm "ChangeDirectory" vào FtpClientService 
-            // để Server thực sự chuyển thư mục. Hiện tại ta cứ gọi Refresh list.
             _ = LoadFilesFromServer();
         }
 
         private void NavigateToBreadcrumb(int index)
         {
-            // Xóa các breadcrumb phía sau
             while (Breadcrumbs.Count - 1 > index)
                 Breadcrumbs.RemoveAt(Breadcrumbs.Count - 1);
 
-            // Reload lại list (Đúng ra là phải gửi lệnh "CD .." hoặc đường dẫn tuyệt đối)
             _ = LoadFilesFromServer();
         }
 
-        // =========================================================
-        // USER MODEL & SAMPLE DATA (Giữ nguyên cho giao diện Share)
-        // =========================================================
-
+        // ==================== USER SAMPLE DATA ====================
         public class UserItem
         {
             public string Name { get; set; } = "";
@@ -143,32 +134,35 @@ namespace MiniFTPClient_WPF.home
             _users.Add(new UserItem { Name = "Admin", AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg" });
         }
 
-        // =========================================================
-        // SHARE PANEL LOGIC (Giữ nguyên)
-        // =========================================================
-
+        // ==================== SHARE PANEL LOGIC ====================
         private async void BtnShare_Click(object sender, RoutedEventArgs e)
         {
-            // Lấy danh sách tên user (string)
-            var realUsers = await FtpClientService.Instance.GetUsersAsync();
-
-            _users.Clear();
-            // Duyệt qua từng tên và tạo UserItem
-            foreach (var name in realUsers)
+            try
             {
-                _users.Add(new UserItem
-                {
-                    Name = name,
-                    AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
-                });
-            }
+                var realUsers = await FtpClientService.Instance.GetUsersAsync();
+                _users.Clear();
 
-            Overlay.Visibility = Visibility.Visible;
-            Panel.SetZIndex(Overlay, 999);
-            Panel.SetZIndex(SharePanel, 1000);
-            SharePanel.Visibility = Visibility.Visible;
-            RecipientList.Focus();
-            UpdateShareButtonState();
+                foreach (var name in realUsers)
+                {
+                    _users.Add(new UserItem
+                    {
+                        Name = name,
+                        AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
+                    });
+                }
+
+                Overlay.Visibility = Visibility.Visible;
+                Panel.SetZIndex(Overlay, 999);
+                Panel.SetZIndex(SharePanel, 1000);
+                SharePanel.Visibility = Visibility.Visible;
+                RecipientList.Focus();
+                UpdateShareButtonState();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Không thể tải danh sách người dùng:\n{ex.Message}",
+                    "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void CloseSharePanel_Click(object sender, RoutedEventArgs e)
@@ -197,7 +191,8 @@ namespace MiniFTPClient_WPF.home
         private void UpdateShareButtonState()
         {
             bool hasRecipient = RecipientList.SelectedItem != null;
-            bool hasFile = !string.IsNullOrWhiteSpace(TxtSelectedFile.Text) && TxtSelectedFile.Text != "(Chưa chọn file)";
+            bool hasFile = !string.IsNullOrWhiteSpace(TxtSelectedFile.Text) &&
+                           TxtSelectedFile.Text != "(Chưa chọn file)";
             BtnDoShare.IsEnabled = hasRecipient && hasFile;
         }
 
@@ -205,19 +200,21 @@ namespace MiniFTPClient_WPF.home
         {
             if (RecipientList.SelectedItem is not UserItem user)
             {
-                MessageBox.Show("Vui lòng chọn người nhận.");
+                MessageBox.Show("Vui lòng chọn người nhận.", "Thông báo",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
             var fileName = TxtSelectedFile.Text;
             if (string.IsNullOrWhiteSpace(fileName) || fileName == "(Chưa chọn file)")
             {
-                MessageBox.Show("Vui lòng chọn file để chia sẻ.");
+                MessageBox.Show("Vui lòng chọn file để chia sẻ.", "Thông báo",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            // Gọi logic chia sẻ thật ở đây (nếu có tính năng chia sẻ trong DB Server)
-            MessageBox.Show($"Đã gửi yêu cầu chia sẻ file: {fileName}\nĐến: {user.Name}", "Chia sẻ thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show($"Đã gửi yêu cầu chia sẻ file: {fileName}\nĐến: {user.Name}",
+                "Chia sẻ thành công", MessageBoxButton.OK, MessageBoxImage.Information);
             CloseSharePanel_Click(sender, e);
         }
 
@@ -225,7 +222,7 @@ namespace MiniFTPClient_WPF.home
         {
             if (file == null) return;
 
-            _selectedFilePath = null; // Có thể lưu ID file nếu cần
+            _selectedFilePath = null;
             TxtSelectedFile.Text = file.Name;
 
             Overlay.Visibility = Visibility.Visible;
@@ -236,11 +233,7 @@ namespace MiniFTPClient_WPF.home
             UpdateShareButtonState();
         }
 
-        // =========================================================
-        // CONTEXT MENU & SEARCH LOGIC
-        // =========================================================
-
-        // Hàm helper tìm Visual Parent (để chuột phải vào ListBoxItem hoạt động)
+        // ==================== CONTEXT MENU ====================
         private static T VisualUpwardSearch<T>(DependencyObject source) where T : DependencyObject
         {
             while (source != null && !(source is T))
@@ -264,22 +257,17 @@ namespace MiniFTPClient_WPF.home
                 {
                     var cm = new ContextMenu();
 
-                    // Menu Chia sẻ
                     var miShare = new MenuItem { Header = "Chia sẻ" };
                     miShare.Click += (s, args) => { ShowShareFor(file); };
                     cm.Items.Add(miShare);
 
-                    // Menu Tải xuống
                     var miDownload = new MenuItem { Header = "Tải xuống" };
                     miDownload.Click += async (s, args) =>
                     {
-                        // Gọi logic tải xuống (cần cài đặt thêm trong FtpClientService)
-                        // Ví dụ: await FtpClientService.Instance.DownloadFileAsync(file.Id, file.Name);
-                        MessageBox.Show("Tính năng tải xuống đang được cập nhật...", "Thông báo");
+                        await DownloadFile(file);
                     };
                     cm.Items.Add(miDownload);
 
-                    // Hiển thị Menu
                     cm.Placement = PlacementMode.MousePoint;
                     cm.IsOpen = true;
                 }
@@ -288,94 +276,143 @@ namespace MiniFTPClient_WPF.home
 
         private void SearchBox1_TextChanged(object sender, TextChangedEventArgs e)
         {
-            SearchPlaceholder1.Visibility = string.IsNullOrWhiteSpace(SearchBox1.Text) ? Visibility.Visible : Visibility.Collapsed;
-            // TODO: Bạn có thể thêm logic filter ObservableCollection<FileItem> ở đây để lọc danh sách
+            SearchPlaceholder1.Visibility = string.IsNullOrWhiteSpace(SearchBox1.Text)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
+        // ==================== UPLOAD ====================
         private async void BtnUpload_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Mở hộp thoại chọn file
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Multiselect = false; // Chỉ chọn 1 file
-            openFileDialog.Title = "Chọn file để tải lên";
-
-            // 2. Nếu người dùng chọn file và ấn OK
-            if (openFileDialog.ShowDialog() == true)
+            OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                string filePath = openFileDialog.FileName;
+                Multiselect = false,
+                Title = "Chọn file để tải lên"
+            };
 
-                // 3. Gọi Service để upload
+            if (openFileDialog.ShowDialog() != true) return;
+
+            string filePath = openFileDialog.FileName;
+
+            // Disable nút và đổi text
+            btnUpload.IsEnabled = false;
+            btnUpload.Content = "Đang tải lên...";
+
+            try
+            {
                 string result = await FtpClientService.Instance.UploadFileAsync(filePath);
 
-                // 4. Kiểm tra kết quả
                 if (result == "OK")
                 {
-                    MessageBox.Show("Tải lên thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                    // 5. Tải lại danh sách để thấy file mới
+                    MessageBox.Show("Tải lên thành công!", "Thành công",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
                     await LoadFilesFromServer();
                 }
                 else
                 {
-                    MessageBox.Show(result, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Lỗi: {result}", "Thất bại",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi upload:\n{ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                btnUpload.IsEnabled = true;
+                btnUpload.Content = "Tải lên";
+            }
         }
 
-        // --- 1. SỰ KIỆN NÚT TẢI XUỐNG ---
+        // ==================== DOWNLOAD ====================
         private async void BtnDownload_Click(object sender, RoutedEventArgs e)
         {
-            // Kiểm tra xem người dùng đã chọn file nào trong danh sách chưa
             if (FileListBox.SelectedItem is not FileItem item || item.IsFolder)
             {
-                MessageBox.Show("Vui lòng chọn một file (không phải thư mục) để tải xuống.");
+                MessageBox.Show("Vui lòng chọn một file (không phải thư mục) để tải xuống.",
+                    "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            // Mở hộp thoại lưu file
-            SaveFileDialog dlg = new SaveFileDialog();
-            dlg.FileName = item.Name; // Gợi ý tên file gốc
+            await DownloadFile(item);
+        }
 
-            if (dlg.ShowDialog() == true)
+        private async Task DownloadFile(FileItem item)
+        {
+            SaveFileDialog dlg = new SaveFileDialog
             {
-                // Gọi Service để tải
-                bool ok = await FtpClientService.Instance.DownloadFileAsync(item.Id, dlg.FileName, item.SizeBytes);
+                FileName = item.Name
+            };
 
-                if (ok) MessageBox.Show("Tải xuống thành công!", "Thông báo");
-                else MessageBox.Show("Tải thất bại. Vui lòng kiểm tra kết nối.", "Lỗi");
+            if (dlg.ShowDialog() != true) return;
+
+            try
+            {
+                bool ok = await FtpClientService.Instance.DownloadFileAsync(
+                    item.Id, dlg.FileName, item.SizeBytes);
+
+                if (ok)
+                {
+                    MessageBox.Show("Tải xuống thành công!", "Thành công",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Tải xuống thất bại.", "Lỗi",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi download:\n{ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        // --- 2. SỰ KIỆN NÚT XÓA ---
+        // ==================== DELETE ====================
         private async void BtnDelete_Click(object sender, RoutedEventArgs e)
         {
-            // Kiểm tra xem đã chọn mục nào chưa
             if (FileListBox.SelectedItem is not FileItem item)
             {
-                MessageBox.Show("Vui lòng chọn một mục để xóa.");
+                MessageBox.Show("Vui lòng chọn một mục để xóa.", "Thông báo",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            // Hỏi xác nhận
-            if (MessageBox.Show($"Bạn có chắc muốn chuyển '{item.Name}' vào thùng rác?", "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            var result = MessageBox.Show(
+                $"Bạn có chắc muốn chuyển '{item.Name}' vào thùng rác?",
+                "Xác nhận xóa",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            try
             {
-                // Gọi Service xóa
                 bool ok = await FtpClientService.Instance.DeleteFileAsync(item.Id);
 
                 if (ok)
                 {
-                    MessageBox.Show("Đã chuyển vào thùng rác.", "Thành công");
-                    // Refresh lại danh sách để item đó biến mất
+                    MessageBox.Show("Đã chuyển vào thùng rác.", "Thành công",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
                     await LoadFilesFromServer();
                 }
                 else
                 {
-                    MessageBox.Show("Xóa thất bại.", "Lỗi");
+                    MessageBox.Show("Xóa thất bại.", "Lỗi",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi xóa file:\n{ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        // --- 3. SỰ KIỆN NÚT LÀM MỚI (REFRESH) ---
+        // ==================== REFRESH ====================
         private async void BtnRefresh_Click(object sender, RoutedEventArgs e)
         {
             await LoadFilesFromServer();
