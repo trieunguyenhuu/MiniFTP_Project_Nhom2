@@ -108,6 +108,11 @@ namespace MiniFtpServer_WPF.Services
                                 else await writer.WriteLineAsync("ERROR|Không tìm thấy file");
                                 break;
                         }
+                        if (cmd == "QUIT" || cmd == "LOGOUT")
+                        {
+                            _logAction($"User {_username} đã đăng xuất.");
+                            return; // Thoát hàm Process -> Xuống finally đóng socket
+                        }
                     }
                 }
             }
