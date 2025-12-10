@@ -149,9 +149,19 @@ namespace MiniFTPClient_WPF.home
 
         private async void BtnShare_Click(object sender, RoutedEventArgs e)
         {
+            // Lấy danh sách tên user (string)
             var realUsers = await FtpClientService.Instance.GetUsersAsync();
+
             _users.Clear();
-            foreach (var u in realUsers) _users.Add(u);
+            // Duyệt qua từng tên và tạo UserItem
+            foreach (var name in realUsers)
+            {
+                _users.Add(new UserItem
+                {
+                    Name = name,
+                    AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
+                });
+            }
 
             Overlay.Visibility = Visibility.Visible;
             Panel.SetZIndex(Overlay, 999);
@@ -280,6 +290,95 @@ namespace MiniFTPClient_WPF.home
         {
             SearchPlaceholder1.Visibility = string.IsNullOrWhiteSpace(SearchBox1.Text) ? Visibility.Visible : Visibility.Collapsed;
             // TODO: Bạn có thể thêm logic filter ObservableCollection<FileItem> ở đây để lọc danh sách
+        }
+
+        private async void BtnUpload_Click(object sender, RoutedEventArgs e)
+        {
+            // 1. Mở hộp thoại chọn file
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Multiselect = false; // Chỉ chọn 1 file
+            openFileDialog.Title = "Chọn file để tải lên";
+
+            // 2. Nếu người dùng chọn file và ấn OK
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string filePath = openFileDialog.FileName;
+
+                // 3. Gọi Service để upload
+                string result = await FtpClientService.Instance.UploadFileAsync(filePath);
+
+                // 4. Kiểm tra kết quả
+                if (result == "OK")
+                {
+                    MessageBox.Show("Tải lên thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    // 5. Tải lại danh sách để thấy file mới
+                    await LoadFilesFromServer();
+                }
+                else
+                {
+                    MessageBox.Show(result, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        // --- 1. SỰ KIỆN NÚT TẢI XUỐNG ---
+        private async void BtnDownload_Click(object sender, RoutedEventArgs e)
+        {
+            // Kiểm tra xem người dùng đã chọn file nào trong danh sách chưa
+            if (FileListBox.SelectedItem is not FileItem item || item.IsFolder)
+            {
+                MessageBox.Show("Vui lòng chọn một file (không phải thư mục) để tải xuống.");
+                return;
+            }
+
+            // Mở hộp thoại lưu file
+            SaveFileDialog dlg = new SaveFileDialog();
+            dlg.FileName = item.Name; // Gợi ý tên file gốc
+
+            if (dlg.ShowDialog() == true)
+            {
+                // Gọi Service để tải
+                bool ok = await FtpClientService.Instance.DownloadFileAsync(item.Id, dlg.FileName, item.SizeBytes);
+
+                if (ok) MessageBox.Show("Tải xuống thành công!", "Thông báo");
+                else MessageBox.Show("Tải thất bại. Vui lòng kiểm tra kết nối.", "Lỗi");
+            }
+        }
+
+        // --- 2. SỰ KIỆN NÚT XÓA ---
+        private async void BtnDelete_Click(object sender, RoutedEventArgs e)
+        {
+            // Kiểm tra xem đã chọn mục nào chưa
+            if (FileListBox.SelectedItem is not FileItem item)
+            {
+                MessageBox.Show("Vui lòng chọn một mục để xóa.");
+                return;
+            }
+
+            // Hỏi xác nhận
+            if (MessageBox.Show($"Bạn có chắc muốn chuyển '{item.Name}' vào thùng rác?", "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                // Gọi Service xóa
+                bool ok = await FtpClientService.Instance.DeleteFileAsync(item.Id);
+
+                if (ok)
+                {
+                    MessageBox.Show("Đã chuyển vào thùng rác.", "Thành công");
+                    // Refresh lại danh sách để item đó biến mất
+                    await LoadFilesFromServer();
+                }
+                else
+                {
+                    MessageBox.Show("Xóa thất bại.", "Lỗi");
+                }
+            }
+        }
+
+        // --- 3. SỰ KIỆN NÚT LÀM MỚI (REFRESH) ---
+        private async void BtnRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadFilesFromServer();
         }
     }
 }

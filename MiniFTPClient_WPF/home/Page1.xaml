@@ -11,7 +11,7 @@
 
     <Page.Resources>
         
-        <Style x:Key="UpLoadtButton" TargetType="Button">
+        <Style x:Key="UpLoadButton" TargetType="Button">
             <Setter Property="Background" Value="White"/>
             <Setter Property="Foreground" Value="#16A34A"/>
             <Setter Property="BorderBrush" Value="#16A34A"/>
@@ -451,8 +451,8 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <Button Style="{StaticResource UpLoadtButton}" x:Name="btnUpload" Click="BtnUpload_Click" Content="Tải lên" FontSize="16" Padding="10,4" Margin="0,0,6,0" />
-                            <Button Style="{StaticResource SimpleButton}" x:Name="BtnRefresh" Content="Làm mới" FontSize="16" Padding="10,4"/>
+                            <Button Style="{StaticResource UpLoadButton}" x:Name="btnUpload" Click="BtnUpload_Click" Content="Tải lên" FontSize="16" Padding="10,4" Margin="0,0,6,0" />
+                            <Button Style="{StaticResource SimpleButton}" x:Name="BtnRefresh" Click="BtnRefresh_Click" Content="Làm mới" FontSize="16" Padding="10,4"/>
                         </StackPanel>
                     </Grid>
 
@@ -555,7 +555,7 @@
             BorderBrush="#c7f9cc" BorderThickness="1" Padding="15">
                     <StackPanel>
                         <TextBlock Text="✔ Thao tác File" FontSize="18"  Margin="0,0,0,10"/>
-                        <Button Padding="8" Style="{StaticResource DownloadButton}">
+                        <Button Padding="8" Style="{StaticResource DownloadButton}" Click="BtnDownload_Click">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Icon:PackIconMaterial Kind="DownloadOutline" VerticalAlignment="Center" Width="20" Height="20"/>
                                 <TextBlock Text="  Tải xuống" FontSize="18" VerticalAlignment="Center" FontWeight="SemiBold"/>
@@ -569,7 +569,7 @@
                             </StackPanel>
                         </Button>
 
-                        <Button Padding="8" Margin="0,10,0,0" Style="{StaticResource DeleteButton}">
+                        <Button Padding="8" Margin="0,10,0,0" Style="{StaticResource DeleteButton}" Click="BtnDelete_Click">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Icon:PackIconMaterial Kind="TrashCanOutline" VerticalAlignment="Center" Width="20" Height="20"/>
                                 <TextBlock Text="  Xóa" FontSize="18" VerticalAlignment="Center" FontWeight="SemiBold"/>

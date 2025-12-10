@@ -15,7 +15,7 @@ namespace MiniFtpServer_WPF.Services
         public DatabaseService()
         {
             // Chỉ trỏ đường dẫn, KHÔNG chạy lệnh CREATE TABLE nữa
-            _dbFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ftp_database.sqlite");
+            _dbFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ftp_db.sqlite");
             _connectionString = $"Data Source={_dbFilePath};Version=3;";
 
             if (!File.Exists(_dbFilePath))
@@ -115,7 +115,11 @@ namespace MiniFtpServer_WPF.Services
             using (var conn = new SQLiteConnection(_connectionString))
             {
                 conn.Open();
-                string sql = "INSERT INTO Files (owner_user_id, parent_id, is_folder, file_name, file_size, storage_path) VALUES (@u, @p, 0, @n, @s, @path)";
+                // CHÚ Ý: Đảm bảo tên cột khớp với lệnh CREATE TABLE/ALTER TABLE bạn đã chạy
+                // Cột is_deleted mặc định là 0, is_folder là 0
+                string sql = @"INSERT INTO Files (owner_user_id, parent_id, is_folder, file_name, file_size, storage_path, is_deleted) 
+                               VALUES (@u, @p, 0, @n, @s, @path, 0)";
+
                 using (var cmd = new SQLiteCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@u", userId);
