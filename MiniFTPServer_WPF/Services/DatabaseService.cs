@@ -296,5 +296,65 @@ namespace MiniFtpServer_WPF.Services
                 MessageBox.Show($"Lỗi tạo thư mục: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        // ==================== KIỂM TRA MẬT KHẨU ====================
+        public bool VerifyPassword(int userId, string password)
+        {
+            try
+            {
+                string hashedPassword = HashPassword(password);
+
+                using (var conn = new SQLiteConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = "SELECT COUNT(*) FROM Users WHERE user_id = @uid AND password = @pwd";
+
+                    using (var cmd = new SQLiteCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@uid", userId);
+                        cmd.Parameters.AddWithValue("@pwd", hashedPassword);
+
+                        long count = (long)cmd.ExecuteScalar();
+                        return count > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi kiểm tra mật khẩu: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        // ==================== CẬP NHẬT MẬT KHẨU ====================
+        public bool UpdatePassword(int userId, string newPassword)
+        {
+            try
+            {
+                string hashedPassword = HashPassword(newPassword);
+
+                using (var conn = new SQLiteConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = "UPDATE Users SET password = @pwd WHERE user_id = @uid";
+
+                    using (var cmd = new SQLiteCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@pwd", hashedPassword);
+                        cmd.Parameters.AddWithValue("@uid", userId);
+
+                        int rows = cmd.ExecuteNonQuery();
+                        return rows > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi cập nhật mật khẩu: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
     }
 }

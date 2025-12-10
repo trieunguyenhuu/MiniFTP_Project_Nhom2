@@ -220,5 +220,63 @@ namespace MiniFTPClient_WPF.Services
             _reader = null;
             _writer = null;
         }
+
+        // ==================== THÊM HÀM ChangePasswordAsync (TODO) ====================
+        public async Task<string> ChangePasswordAsync(string currentPwd, string newPwd)
+        {
+            try
+            {
+                if (!IsConnected) return "Chưa kết nối server";
+
+                // Gửi lệnh CHANGE_PASSWORD|currentPwd|newPwd
+                await _writer.WriteLineAsync($"CHANGE_PASSWORD|{currentPwd}|{newPwd}");
+                string response = await _reader.ReadLineAsync();
+
+                if (response.StartsWith("CHANGE_PASSWORD_SUCCESS"))
+                {
+                    return "OK";
+                }
+                else if (response.StartsWith("ERROR"))
+                {
+                    return response.Split('|')[1];
+                }
+
+                return "Lỗi không xác định";
+            }
+            catch (Exception ex)
+            {
+                return $"Lỗi: {ex.Message}";
+            }
+        }
+
+        // ==================== THÊM HÀM UpdateProfileAsync (TODO) ====================
+        public async Task<string> UpdateProfileAsync(string username, string email, string fullName)
+        {
+            try
+            {
+                if (!IsConnected) return "Chưa kết nối server";
+
+                // Gửi lệnh UPDATE_PROFILE|username|email|fullName
+                await _writer.WriteLineAsync($"UPDATE_PROFILE|{username}|{email}|{fullName}");
+                string response = await _reader.ReadLineAsync();
+
+                if (response.StartsWith("UPDATE_SUCCESS"))
+                {
+                    CurrentFullName = fullName;
+                    return "OK";
+                }
+                else if (response.StartsWith("ERROR"))
+                {
+                    return response.Split('|')[1];
+                }
+
+                return "Lỗi không xác định";
+            }
+            catch (Exception ex)
+            {
+                return $"Lỗi: {ex.Message}";
+            }
+        }
+
     }
 }

@@ -1,90 +1,233 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using MiniFTPClient_WPF.Services;
+using System;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace MiniFTPClient_WPF.setting
 {
-    /// <summary>
-    /// Interaction logic for setting.xaml
-    /// </summary>
     public partial class Setting : Page
     {
+        private bool _isConfirmPwdVisible = false;
+        private bool _isCurPwdVisible = false;
+        private bool _isNewPwdVisible = false;
+
         public Setting()
         {
             InitializeComponent();
+            LoadUserInfo();
         }
 
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        // ==================== TẢI THÔNG TIN USER ====================
+        private void LoadUserInfo()
         {
-
-        }
-
-        //hàm xử lý ẩn hiện mật khẩu ô xác nhận mật khẩu
-        private bool _isConfirmPwdVisible = false;
-
-        private void ConfirmPwd_ToggleEye(object sender, MouseButtonEventArgs e)
-        {
-            _isConfirmPwdVisible = !_isConfirmPwdVisible;
-
-            if (_isConfirmPwdVisible)
+            try
             {
-                ConfirmPwdVisibleBox.Text = ConfirmPwdPasswordBox.Password;
-                ConfirmPwdVisibleBox.Visibility = Visibility.Visible;
-                ConfirmPwdPasswordBox.Visibility = Visibility.Collapsed;
+                // Lấy thông tin từ FtpClientService
+                if (FtpClientService.Instance.IsConnected)
+                {
+                    // Hiển thị tên đầy đủ
+                    string fullName = FtpClientService.Instance.CurrentFullName;
+                    if (!string.IsNullOrWhiteSpace(fullName))
+                    {
+                        TxtDisplayName.Text = fullName;
+                        TxtFullName.Text = fullName;
+                    }
 
-                ConfirmPwdEyeIcon.Source = new BitmapImage(
-                    new Uri("pack://application:,,,/MiniFTPClient_WPF;component/anh/eyeopen.png"));
+                    // Hiển thị username
+                    string username = FtpClientService.Instance.CurrentUsername;
+                    if (!string.IsNullOrWhiteSpace(username))
+                    {
+                        TxtUsername.Text = username;
+                    }
+
+                    // Email có thể để trống hoặc lấy từ DB nếu có
+                    // TxtEmail.Text = "..."; // Nếu có trong Service
+                }
+                else
+                {
+                    MessageBox.Show("Chưa đăng nhập!", "Cảnh báo",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                ConfirmPwdPasswordBox.Password = ConfirmPwdVisibleBox.Text;
-                ConfirmPwdVisibleBox.Visibility = Visibility.Collapsed;
-                ConfirmPwdPasswordBox.Visibility = Visibility.Visible;
-
-                ConfirmPwdEyeIcon.Source = new BitmapImage(
-                    new Uri("pack://application:,,,/MiniFTPClient_WPF;component/anh/eyeclose.png"));
+                MessageBox.Show($"Lỗi tải thông tin: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
-            UpdateConfirmPwdPlaceholder();
         }
 
-        private void UpdateConfirmPwdPlaceholder()
+        // ==================== LƯU THÔNG TIN CÁ NHÂN ====================
+        private void BtnSaveProfile_Click(object sender, RoutedEventArgs e)
         {
-            bool isEmpty =
-                string.IsNullOrEmpty(ConfirmPwdPasswordBox.Password) &&
-                string.IsNullOrEmpty(ConfirmPwdVisibleBox.Text);
+            try
+            {
+                string username = TxtUsername.Text.Trim();
+                string email = TxtEmail.Text.Trim();
+                string fullName = TxtFullName.Text.Trim();
 
-            ConfirmPwdPlaceholder.Visibility =
-                isEmpty ? Visibility.Visible : Visibility.Collapsed;
+                // Validation
+                if (string.IsNullOrWhiteSpace(username))
+                {
+                    MessageBox.Show("Tên tài khoản không được để trống!", "Lỗi",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    TxtUsername.Focus();
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(fullName))
+                {
+                    MessageBox.Show("Họ và tên không được để trống!", "Lỗi",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    TxtFullName.Focus();
+                    return;
+                }
+
+                // Kiểm tra email hợp lệ (nếu nhập)
+                if (!string.IsNullOrWhiteSpace(email) && !IsValidEmail(email))
+                {
+                    MessageBox.Show("Email không hợp lệ!", "Lỗi",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    TxtEmail.Focus();
+                    return;
+                }
+
+                // TODO: Gửi lệnh UPDATE_PROFILE lên server
+                // await FtpClientService.Instance.UpdateProfileAsync(username, email, fullName);
+
+                MessageBox.Show("Chức năng cập nhật thông tin đang được phát triển!",
+                    "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi lưu thông tin: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
-        private void ConfirmPwdPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        // ==================== ĐỔI MẬT KHẨU ====================
+        private async void BtnChangePassword_Click(object sender, RoutedEventArgs e)
         {
-            if (!_isConfirmPwdVisible)
-                ConfirmPwdVisibleBox.Text = ConfirmPwdPasswordBox.Password;
+            try
+            {
+                string currentPwd = _isCurPwdVisible
+                    ? CurPwdVisibleBox.Text
+                    : CurPwdPasswordBox.Password;
 
-            UpdateConfirmPwdPlaceholder();
+                string newPwd = _isNewPwdVisible
+                    ? NewPwdVisibleBox.Text
+                    : NewPwdPasswordBox.Password;
+
+                string confirmPwd = _isConfirmPwdVisible
+                    ? ConfirmPwdVisibleBox.Text
+                    : ConfirmPwdPasswordBox.Password;
+
+                // Validation
+                if (string.IsNullOrWhiteSpace(currentPwd))
+                {
+                    MessageBox.Show("Vui lòng nhập mật khẩu hiện tại!", "Lỗi",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    CurPwdPasswordBox.Focus();
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(newPwd))
+                {
+                    MessageBox.Show("Vui lòng nhập mật khẩu mới!", "Lỗi",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    NewPwdPasswordBox.Focus();
+                    return;
+                }
+
+                if (newPwd.Length < 6)
+                {
+                    MessageBox.Show("Mật khẩu mới phải có ít nhất 6 ký tự!", "Lỗi",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    NewPwdPasswordBox.Focus();
+                    return;
+                }
+
+                if (newPwd != confirmPwd)
+                {
+                    MessageBox.Show("Mật khẩu xác nhận không khớp!", "Lỗi",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    ConfirmPwdPasswordBox.Focus();
+                    return;
+                }
+
+                if (currentPwd == newPwd)
+                {
+                    MessageBox.Show("Mật khẩu mới không được trùng với mật khẩu cũ!", "Lỗi",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    NewPwdPasswordBox.Focus();
+                    return;
+                }
+
+                // Disable nút để tránh spam
+                var btn = sender as Button;
+                if (btn != null)
+                {
+                    btn.IsEnabled = false;
+                    btn.Content = "Đang xử lý...";
+                }
+
+                try
+                {
+                    // TODO: Gửi lệnh CHANGE_PASSWORD lên server
+                    // string result = await FtpClientService.Instance.ChangePasswordAsync(currentPwd, newPwd);
+
+                    // Giả lập thành công (xóa dòng này khi có API thật)
+                    await System.Threading.Tasks.Task.Delay(500);
+
+                    MessageBox.Show("Chức năng đổi mật khẩu đang được phát triển!\n\n" +
+                        "Khi hoàn thiện, bạn sẽ cần đăng nhập lại sau khi đổi mật khẩu.",
+                        "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    // Xóa các ô nhập sau khi thành công
+                    ClearPasswordFields();
+                }
+                finally
+                {
+                    if (btn != null)
+                    {
+                        btn.IsEnabled = true;
+                        btn.Content = "Cập nhật";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi đổi mật khẩu: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
-        private void ConfirmPwdVisibleBox_TextChanged(object sender, TextChangedEventArgs e)
+        // ==================== HELPER FUNCTIONS ====================
+        private void ClearPasswordFields()
         {
-            if (_isConfirmPwdVisible)
-                ConfirmPwdPasswordBox.Password = ConfirmPwdVisibleBox.Text;
-
-            UpdateConfirmPwdPlaceholder();
+            CurPwdPasswordBox.Clear();
+            CurPwdVisibleBox.Clear();
+            NewPwdPasswordBox.Clear();
+            NewPwdVisibleBox.Clear();
+            ConfirmPwdPasswordBox.Clear();
+            ConfirmPwdVisibleBox.Clear();
         }
 
-        //hàm xử lý ẩn hiệu mật khẩu hiện tại
-        private bool _isCurPwdVisible = false;
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // ==================== ẨN/HIỆN MẬT KHẨU HIỆN TẠI ====================
         private void CurPwd_ToggleEye(object sender, MouseButtonEventArgs e)
         {
             _isCurPwdVisible = !_isCurPwdVisible;
@@ -94,7 +237,6 @@ namespace MiniFTPClient_WPF.setting
                 CurPwdVisibleBox.Text = CurPwdPasswordBox.Password;
                 CurPwdVisibleBox.Visibility = Visibility.Visible;
                 CurPwdPasswordBox.Visibility = Visibility.Collapsed;
-
                 CurPwdEyeIcon.Source = new BitmapImage(
                     new Uri("pack://application:,,,/anh/eyeopen.png"));
             }
@@ -103,7 +245,6 @@ namespace MiniFTPClient_WPF.setting
                 CurPwdPasswordBox.Password = CurPwdVisibleBox.Text;
                 CurPwdVisibleBox.Visibility = Visibility.Collapsed;
                 CurPwdPasswordBox.Visibility = Visibility.Visible;
-
                 CurPwdEyeIcon.Source = new BitmapImage(
                     new Uri("pack://application:,,,/anh/eyeclose.png"));
             }
@@ -129,53 +270,35 @@ namespace MiniFTPClient_WPF.setting
 
         private void UpdateCurPwdPlaceholder()
         {
-            bool isEmpty =
-                string.IsNullOrEmpty(CurPwdPasswordBox.Password) &&
-                string.IsNullOrEmpty(CurPwdVisibleBox.Text);
+            bool isEmpty = string.IsNullOrEmpty(CurPwdPasswordBox.Password) &&
+                          string.IsNullOrEmpty(CurPwdVisibleBox.Text);
 
-            CurPwdPlaceholder.Visibility =
-                isEmpty ? Visibility.Visible : Visibility.Collapsed;
+            CurPwdPlaceholder.Visibility = isEmpty ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        // biến trạng thái: đang hiển thị rõ hay không
-        private bool _isNewPwdVisible = false;
-
+        // ==================== ẨN/HIỆN MẬT KHẨU MỚI ====================
         private void NewPwd_ToggleEye(object sender, MouseButtonEventArgs e)
         {
             _isNewPwdVisible = !_isNewPwdVisible;
 
             if (_isNewPwdVisible)
             {
-                // Hiện mật khẩu: dùng TextBox
                 NewPwdVisibleBox.Text = NewPwdPasswordBox.Password;
                 NewPwdVisibleBox.Visibility = Visibility.Visible;
                 NewPwdPasswordBox.Visibility = Visibility.Collapsed;
-
                 NewPwdEyeIcon.Source = new BitmapImage(
                     new Uri("pack://application:,,,/MiniFTPClient_WPF;component/anh/eyeopen.png"));
             }
             else
             {
-                // Ẩn mật khẩu: dùng PasswordBox
                 NewPwdPasswordBox.Password = NewPwdVisibleBox.Text;
                 NewPwdVisibleBox.Visibility = Visibility.Collapsed;
                 NewPwdPasswordBox.Visibility = Visibility.Visible;
-
                 NewPwdEyeIcon.Source = new BitmapImage(
                     new Uri("pack://application:,,,/MiniFTPClient_WPF;component/anh/eyeclose.png"));
             }
 
             UpdateNewPwdPlaceholder();
-        }
-
-        private void UpdateNewPwdPlaceholder()
-        {
-            bool isEmpty =
-                string.IsNullOrEmpty(NewPwdPasswordBox.Password) &&
-                string.IsNullOrEmpty(NewPwdVisibleBox.Text);
-
-            NewPwdPlaceholder.Visibility =
-                isEmpty ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void NewPwdPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
@@ -194,5 +317,61 @@ namespace MiniFTPClient_WPF.setting
             UpdateNewPwdPlaceholder();
         }
 
+        private void UpdateNewPwdPlaceholder()
+        {
+            bool isEmpty = string.IsNullOrEmpty(NewPwdPasswordBox.Password) &&
+                          string.IsNullOrEmpty(NewPwdVisibleBox.Text);
+
+            NewPwdPlaceholder.Visibility = isEmpty ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        // ==================== ẨN/HIỆN XÁC NHẬN MẬT KHẨU ====================
+        private void ConfirmPwd_ToggleEye(object sender, MouseButtonEventArgs e)
+        {
+            _isConfirmPwdVisible = !_isConfirmPwdVisible;
+
+            if (_isConfirmPwdVisible)
+            {
+                ConfirmPwdVisibleBox.Text = ConfirmPwdPasswordBox.Password;
+                ConfirmPwdVisibleBox.Visibility = Visibility.Visible;
+                ConfirmPwdPasswordBox.Visibility = Visibility.Collapsed;
+                ConfirmPwdEyeIcon.Source = new BitmapImage(
+                    new Uri("pack://application:,,,/MiniFTPClient_WPF;component/anh/eyeopen.png"));
+            }
+            else
+            {
+                ConfirmPwdPasswordBox.Password = ConfirmPwdVisibleBox.Text;
+                ConfirmPwdVisibleBox.Visibility = Visibility.Collapsed;
+                ConfirmPwdPasswordBox.Visibility = Visibility.Visible;
+                ConfirmPwdEyeIcon.Source = new BitmapImage(
+                    new Uri("pack://application:,,,/MiniFTPClient_WPF;component/anh/eyeclose.png"));
+            }
+
+            UpdateConfirmPwdPlaceholder();
+        }
+
+        private void ConfirmPwdPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (!_isConfirmPwdVisible)
+                ConfirmPwdVisibleBox.Text = ConfirmPwdPasswordBox.Password;
+
+            UpdateConfirmPwdPlaceholder();
+        }
+
+        private void ConfirmPwdVisibleBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isConfirmPwdVisible)
+                ConfirmPwdPasswordBox.Password = ConfirmPwdVisibleBox.Text;
+
+            UpdateConfirmPwdPlaceholder();
+        }
+
+        private void UpdateConfirmPwdPlaceholder()
+        {
+            bool isEmpty = string.IsNullOrEmpty(ConfirmPwdPasswordBox.Password) &&
+                          string.IsNullOrEmpty(ConfirmPwdVisibleBox.Text);
+
+            ConfirmPwdPlaceholder.Visibility = isEmpty ? Visibility.Visible : Visibility.Collapsed;
+        }
     }
 }

@@ -451,11 +451,12 @@
                             <StackPanel Grid.Column="1"
                                 Margin="16,4,0,0"
                                 VerticalAlignment="Center">
-                                <TextBlock Text="Nguyễn Lanh Anh"
+                                <TextBlock x:Name="TxtDisplayName"
+                                   Text="Đang tải.."
                                    FontSize="20"
                                    FontWeight="SemiBold"
                                    Foreground="#111827"/>
-                                <TextBlock Text="lananhnguyen1@gmail.com"
+                                <TextBlock x:Name="TxtEmail"
                                    FontSize="16"
                                    Foreground="#6B7280"
                                    Margin="0,2,0,6"/>
@@ -476,9 +477,10 @@
                                Foreground="#6B7280"
                                FontWeight="SemiBold"
                                Margin="5,0,0,4"/>
-                            <TextBox Style="{StaticResource RoundedTextBoxStyle}"
+                            <TextBox x:Name="TxtUsername"
+                             Style="{StaticResource RoundedTextBoxStyle}"
                              Tag="Nhập tên tài khoản..."
-                             Text="user1"/>
+                             Text=""/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Margin="10,0,0,0">
@@ -489,7 +491,7 @@
                                Margin="5,0,0,4"/>
                             <TextBox Style="{StaticResource RoundedTextBoxStyle}"
                              Tag="Nhập email..."
-                             Text="lananhnguyen1@gmail.com"/>
+                             Text=""/>
                         </StackPanel>
                     </Grid>
 
@@ -506,9 +508,10 @@
                                Foreground="#6B7280"
                                FontWeight="SemiBold"
                                Margin="5,0,0,4"/>
-                            <TextBox Style="{StaticResource RoundedTextBoxStyle}"
+                            <TextBox x:Name="TxtFullName"
+                             Style="{StaticResource RoundedTextBoxStyle}"
                              Tag="Nhập họ và tên..."
-                             Text="Nguyễn Lan Anh"/>
+                             Text=""/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Margin="10,0,0,0">
@@ -524,7 +527,8 @@
                     </Grid>
 
                     <!-- Nút lưu -->
-                    <Button Content="Lưu thay đổi" Margin="0,20,0,0"
+                    <Button x:Name="BtnSaveProfile"
+                    Content="Lưu thay đổi" Margin="0,20,0,0"
                     Style="{StaticResource PrimaryButtonStyle}"
                     HorizontalAlignment="Center"/>
                 </StackPanel>
@@ -772,7 +776,8 @@
                             </StackPanel>
                             </Grid>
 
-                            <Button Content="Cập nhật"
+                        <Button x:Name="BtnChangePassword"
+                            Content="Cập nhật"
                             Style="{StaticResource PrimaryButtonStyle}"
                             HorizontalAlignment="Center"/>
                         </StackPanel>

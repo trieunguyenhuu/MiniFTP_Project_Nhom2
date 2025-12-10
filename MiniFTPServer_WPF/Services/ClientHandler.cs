@@ -25,6 +25,7 @@ namespace MiniFtpServer_WPF.Services
         public const string DELETE_SUCCESS = "DELETE_SUCCESS";
         public const string GET_USERS = "GET_USERS";
         public const string USERS_LIST = "USERS_LIST";
+        public const string CHANGE_PASSWORD = "CHANGE_PASSWORD";
         public const string QUIT = "QUIT";
         public const string LOGOUT = "LOGOUT";
         public const string ERROR = "ERROR";
@@ -41,7 +42,6 @@ namespace MiniFtpServer_WPF.Services
         private int _currentFolderId = -1;
         private string _username = "";
 
-        // Giới hạn kích thước file upload (100MB)
         private const long MAX_FILE_SIZE = 100 * 1024 * 1024;
 
         public ClientHandler(Socket socket, DatabaseService db, Action<string> log, string storage)
@@ -70,7 +70,6 @@ namespace MiniFtpServer_WPF.Services
                         string[] parts = line.Split('|');
                         string cmd = parts[0];
 
-                        // =============== LOGIN ===============
                         if (cmd == FtpCommands.LOGIN)
                         {
                             if (parts.Length < 3)
@@ -99,14 +98,12 @@ namespace MiniFtpServer_WPF.Services
                             continue;
                         }
 
-                        // Kiểm tra đã đăng nhập chưa
                         if (_userId == -1)
                         {
                             await writer.WriteLineAsync($"{FtpCommands.ERROR}|Chưa đăng nhập");
                             continue;
                         }
 
-                        // =============== XỬ LÝ CÁC LỆNH ===============
                         switch (cmd)
                         {
                             case FtpCommands.LIST:
@@ -131,6 +128,10 @@ namespace MiniFtpServer_WPF.Services
 
                             case FtpCommands.GET_USERS:
                                 await HandleGetUsers(writer);
+                                break;
+
+                            case FtpCommands.CHANGE_PASSWORD:
+                                await HandleChangePassword(parts, writer);
                                 break;
 
                             case FtpCommands.QUIT:
@@ -165,11 +166,10 @@ namespace MiniFtpServer_WPF.Services
                     _clientSocket?.Close();
                     _clientSocket?.Dispose();
                 }
-                catch { /* Socket đã đóng */ }
+                catch { }
             }
         }
 
-        // ==================== HANDLE LIST ====================
         private async Task HandleList(StreamWriter writer)
         {
             try
@@ -183,7 +183,6 @@ namespace MiniFtpServer_WPF.Services
             }
         }
 
-        // ==================== HANDLE MKDIR ====================
         private async Task HandleMkdir(string[] parts, StreamWriter writer)
         {
             try
@@ -205,7 +204,6 @@ namespace MiniFtpServer_WPF.Services
             }
         }
 
-        // ==================== HANDLE UPLOAD ====================
         private async Task HandleUpload(string[] parts, NetworkStream stream, StreamWriter writer)
         {
             try
@@ -219,7 +217,6 @@ namespace MiniFtpServer_WPF.Services
                 string fileName = SanitizeFileName(parts[1]);
                 long size = long.Parse(parts[2]);
 
-                // Kiểm tra kích thước
                 if (size > MAX_FILE_SIZE)
                 {
                     await writer.WriteLineAsync($"{FtpCommands.ERROR}|File quá lớn (tối đa 100MB)");
@@ -232,17 +229,14 @@ namespace MiniFtpServer_WPF.Services
                     return;
                 }
 
-                // Tạo thư mục user
                 string userFolder = Path.Combine(_storageRoot, _userId.ToString());
                 Directory.CreateDirectory(userFolder);
 
-                // Tạo tên file an toàn
                 string physicalName = Guid.NewGuid().ToString() + Path.GetExtension(fileName);
                 string savePath = Path.Combine(userFolder, physicalName);
 
                 await writer.WriteLineAsync(FtpCommands.UPLOAD_READY);
 
-                // Nhận file
                 using (var fs = new FileStream(savePath, FileMode.Create, FileAccess.Write))
                 {
                     byte[] buffer = new byte[8192];
@@ -263,7 +257,6 @@ namespace MiniFtpServer_WPF.Services
                     }
                 }
 
-                // Lưu vào DB
                 _dbService.AddFile(_userId, _currentFolderId, fileName, size, physicalName);
                 await writer.WriteLineAsync($"{FtpCommands.UPLOAD_SUCCESS}|Upload thành công");
                 _logAction($"⬆ {_username} upload: {fileName} ({FormatFileSize(size)})");
@@ -280,7 +273,6 @@ namespace MiniFtpServer_WPF.Services
             }
         }
 
-        // ==================== HANDLE DOWNLOAD ====================
         private async Task HandleDownload(string[] parts, NetworkStream stream, StreamWriter writer)
         {
             try
@@ -325,7 +317,6 @@ namespace MiniFtpServer_WPF.Services
             }
         }
 
-        // ==================== HANDLE DELETE ====================
         private async Task HandleDelete(string[] parts, StreamWriter writer)
         {
             try
@@ -347,7 +338,6 @@ namespace MiniFtpServer_WPF.Services
             }
         }
 
-        // ==================== HANDLE GET USERS ====================
         private async Task HandleGetUsers(StreamWriter writer)
         {
             try
@@ -361,10 +351,57 @@ namespace MiniFtpServer_WPF.Services
             }
         }
 
-        // ==================== HELPER FUNCTIONS ====================
+        private async Task HandleChangePassword(string[] parts, StreamWriter writer)
+        {
+            try
+            {
+                if (parts.Length < 3)
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Thiếu thông tin mật khẩu");
+                    return;
+                }
+
+                string currentPwd = parts[1];
+                string newPwd = parts[2];
+
+                // Gọi hàm VerifyPassword từ DatabaseService
+                bool isValid = _dbService.VerifyPassword(_userId, currentPwd);
+
+                if (!isValid)
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Mật khẩu hiện tại không đúng");
+                    _logAction($"✗ {_username} thử đổi mật khẩu nhưng sai mật khẩu cũ");
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(newPwd) || newPwd.Length < 6)
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Mật khẩu mới phải có ít nhất 6 ký tự");
+                    return;
+                }
+
+                // Gọi hàm UpdatePassword từ DatabaseService
+                bool updated = _dbService.UpdatePassword(_userId, newPwd);
+
+                if (updated)
+                {
+                    await writer.WriteLineAsync("CHANGE_PASSWORD_SUCCESS|Đổi mật khẩu thành công");
+                    _logAction($"✓ {_username} đã đổi mật khẩu");
+                }
+                else
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Không thể cập nhật mật khẩu");
+                }
+            }
+            catch (Exception ex)
+            {
+                await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi đổi mật khẩu: {ex.Message}");
+                _logAction($"✗ Lỗi đổi mật khẩu: {ex.Message}");
+            }
+        }
+
         private string SanitizeFileName(string fileName)
         {
-            // Loại bỏ ký tự nguy hiểm
             string safe = Path.GetFileName(fileName);
             char[] invalidChars = Path.GetInvalidFileNameChars();
 
