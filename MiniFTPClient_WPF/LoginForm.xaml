@@ -369,7 +369,8 @@
                                        HorizontalAlignment="Right"/>
 
 
-                            <Button x:Name="btnLogin"
+                            <Button x:Name="BtnLogin"
+                                    Click="BtnLogin_Click"
                                     Content="KẾT NỐI FTP"
                                     FontWeight="SemiBold"
                                     Style="{StaticResource LoginButtonStyle}"/>
