@@ -273,7 +273,7 @@
                             </Ellipse.Fill>
                         </Ellipse>
                         <StackPanel Margin="8,0,0,0">
-                            <TextBlock Text="Nguyễn Lan Anh" FontWeight="SemiBold" FontSize="18"/>
+                            <TextBlock x:Name="txtUserName" FontWeight="SemiBold" FontSize="18"/>
                             <TextBlock Text="Client" Foreground="#6B7280" FontSize="16"/>
                         </StackPanel>
                     </StackPanel>

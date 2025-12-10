@@ -10,7 +10,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 
-// Import các namespace quan trọng
 using MiniFTPClient_WPF.Models;
 using MiniFTPClient_WPF.Services;
 
@@ -75,6 +74,36 @@ namespace MiniFTPClient_WPF.home
             catch (Exception ex)
             {
                 MessageBox.Show("Không thể tải danh sách file: " + ex.Message);
+            }
+        }
+
+        // Sự kiện nút Tải xuống
+        private async void BtnDownload_Click(object sender, RoutedEventArgs e)
+        {
+            if (FileListBox.SelectedItem is not FileItem item || item.IsFolder) return;
+
+            SaveFileDialog dlg = new SaveFileDialog();
+            dlg.FileName = item.Name;
+            if (dlg.ShowDialog() == true)
+            {
+                bool ok = await FtpClientService.Instance.DownloadFileAsync(item.Id, dlg.FileName, item.SizeBytes);
+                MessageBox.Show(ok ? "Tải xong!" : "Lỗi tải file");
+            }
+        }
+
+        // Sự kiện nút Xóa
+        private async void BtnDelete_Click(object sender, RoutedEventArgs e)
+        {
+            if (FileListBox.SelectedItem is not FileItem item) return;
+
+            if (MessageBox.Show($"Chuyển '{item.Name}' vào thùng rác?", "Xác nhận", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            {
+                bool ok = await FtpClientService.Instance.DeleteFileAsync(item.Id);
+                if (ok)
+                {
+                    // Refresh lại list
+                    await LoadFilesFromServer();
+                }
             }
         }
 
@@ -151,8 +180,12 @@ namespace MiniFTPClient_WPF.home
         // SHARE PANEL LOGIC (Giữ nguyên)
         // =========================================================
 
-        private void BtnShare_Click(object sender, RoutedEventArgs e)
+        private async void BtnShare_Click(object sender, RoutedEventArgs e)
         {
+            var realUsers = await FtpClientService.Instance.GetUsersAsync();
+            _users.Clear();
+            foreach (var u in realUsers) _users.Add(u);
+
             Overlay.Visibility = Visibility.Visible;
             Panel.SetZIndex(Overlay, 999);
             Panel.SetZIndex(SharePanel, 1000);

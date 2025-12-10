@@ -22,6 +22,7 @@ namespace MiniFTPClient_WPF
         {
             InitializeComponent();
             MainFrame.Navigate(new MiniFTPClient_WPF.home.Page1());
+            txtUserName.Text = FtpClientService.Instance.CurrentFullName;
             // Đăng ký sự kiện khi bấm nút X
             this.Closing += MainWindow_Closing;
         }

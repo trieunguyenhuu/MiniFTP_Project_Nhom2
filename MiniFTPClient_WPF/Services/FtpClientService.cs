@@ -1,10 +1,11 @@
-﻿using System;
+﻿using MiniFTPClient_WPF.Models;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using MiniFTPClient_WPF.Models;
+using static MiniFTPClient_WPF.home.Page1;
 
 namespace MiniFTPClient_WPF.Services
 {
@@ -15,15 +16,32 @@ namespace MiniFTPClient_WPF.Services
         public static FtpClientService Instance => _instance ??= new FtpClientService();
 
         private TcpClient _client;
+        private NetworkStream _stream;
         private StreamReader _reader;
         private StreamWriter _writer;
 
         public bool IsConnected => _client != null && _client.Connected;
         public string CurrentUsername { get; private set; }
+        public string CurrentFullName { get; private set; }
 
         // Cấu hình Server (Nếu test cùng máy thì để 127.0.0.1)
         private const string SERVER_IP = "127.0.0.1";
         private const int SERVER_PORT = 9999;
+
+        public async Task<string> SendCommandAsync(string command)
+        {
+            if (!IsConnected) return "ERROR|Mất kết nối";
+            try
+            {
+                await _writer.WriteLineAsync(command);
+                await _writer.FlushAsync();
+                return await _reader.ReadLineAsync();
+            }
+            catch (Exception ex)
+            {
+                return "ERROR|" + ex.Message;
+            }
+        }
 
         // --- 1. XỬ LÝ ĐĂNG NHẬP ---
         public async Task<string> LoginAsync(string username, string password)
@@ -45,19 +63,17 @@ namespace MiniFTPClient_WPF.Services
 
                 // Gửi lệnh LOGIN
                 await _writer.WriteLineAsync($"LOGIN|{username}|{password}");
-
-                // Nhận phản hồi
-                string response = await _reader.ReadLineAsync(); // VD: LOGIN_SUCCESS|Chào admin
+                string response = await _reader.ReadLineAsync();
 
                 if (response != null && response.StartsWith("LOGIN_SUCCESS"))
                 {
                     CurrentUsername = username;
+                    // Server trả về: LOGIN_SUCCESS|
+                    var parts = response.Split('|');
+                    CurrentFullName = parts.Length > 1 ? parts[1] : username;
                     return "OK";
                 }
-                else
-                {
-                    return response?.Split('|')[1] ?? "Lỗi không xác định";
-                }
+                return response;
             }
             catch (Exception ex)
             {
@@ -110,6 +126,62 @@ namespace MiniFTPClient_WPF.Services
             await _writer.WriteLineAsync($"MKDIR|{folderName}");
             string response = await _reader.ReadLineAsync();
             return response != null && response.StartsWith("MKDIR_SUCCESS");
+        }
+
+        // Hàm Download
+        public async Task<bool> DownloadFileAsync(int fileId, string savePath, long fileSize)
+        {
+            if (!IsConnected) return false;
+            try
+            {
+                await _writer.WriteLineAsync($"DOWNLOAD|{fileId}");
+                await _writer.FlushAsync();
+
+                string resp = await _reader.ReadLineAsync();
+                if (resp.StartsWith("DOWNLOAD_READY"))
+                {
+                    using (var fs = new FileStream(savePath, FileMode.Create))
+                    {
+                        byte[] buffer = new byte[8192];
+                        long totalRead = 0;
+                        while (totalRead < fileSize)
+                        {
+                            int read = await _stream.ReadAsync(buffer, 0, (int)Math.Min(buffer.Length, fileSize - totalRead));
+                            if (read == 0) break;
+                            await fs.WriteAsync(buffer, 0, read);
+                            totalRead += read;
+                        }
+                    }
+                    return true;
+                }
+                return false;
+            }
+            catch { return false; }
+        }
+
+        // Hàm Delete
+        public async Task<bool> DeleteFileAsync(int fileId)
+        {
+            return (await SendCommandAsync($"DELETE|{fileId}")).StartsWith("DELETE_SUCCESS");
+        }
+
+        // Hàm Lấy Users
+        public async Task<List<UserItem>> GetUsersAsync()
+        {
+            var list = new List<UserItem>();
+            await _writer.WriteLineAsync("GET_USERS");
+            string resp = await _reader.ReadLineAsync();
+            if (resp.StartsWith("USERS_LIST"))
+            {
+                // Format: USERS_LIST|1:LanAnh;2:Trieu;
+                string data = resp.Substring(11);
+                foreach (var u in data.Split(';', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var p = u.Split(':');
+                    list.Add(new UserItem { Name = p[1] }); // Bạn có thể thêm ID vào UserItem nếu cần
+                }
+            }
+            return list;
         }
 
         // --- 4. NGẮT KẾT NỐI ---
