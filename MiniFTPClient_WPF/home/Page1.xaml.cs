@@ -36,11 +36,8 @@ namespace MiniFTPClient_WPF.home
             // Khởi tạo Breadcrumb
             Breadcrumbs.Add("Home");
 
-            // 🔹 GỌI DỮ LIỆU THẬT TỪ SERVER
-            // Constructor không thể await, nên ta gọi dạng fire-and-forget
             _ = LoadFilesFromServer();
 
-            // 🔹 Khởi tạo list người dùng & bind vào RecipientList
             InitSampleUsers();
             RecipientList.ItemsSource = _users;
 
@@ -75,6 +72,41 @@ namespace MiniFTPClient_WPF.home
             catch (Exception ex)
             {
                 MessageBox.Show("Không thể tải danh sách file: " + ex.Message);
+            }
+        }
+
+        // Sự kiện khi bấm nút Upload
+        private async void BtnUpload_Click(object sender, RoutedEventArgs e)
+        {
+            // 1. Mở cửa sổ chọn file của Windows
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Multiselect = false; // Upload từng file (để test trước)
+            openFileDialog.Title = "Chọn file để tải lên";
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string filePath = openFileDialog.FileName;
+
+                // (Tùy chọn) Hiện loading hoặc disable nút để tránh bấm nhiều lần
+                // btnUpload.IsEnabled = false; 
+
+                // 2. Gọi Service để Upload
+                string result = await FtpClientService.Instance.UploadFileAsync(filePath);
+
+                // 3. Kiểm tra kết quả
+                if (result == "OK")
+                {
+                    MessageBox.Show("Tải lên thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    // 4. Refresh lại danh sách file để thấy file mới
+                    await LoadFilesFromServer();
+                }
+                else
+                {
+                    MessageBox.Show(result, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+
+                // btnUpload.IsEnabled = true;
             }
         }
 

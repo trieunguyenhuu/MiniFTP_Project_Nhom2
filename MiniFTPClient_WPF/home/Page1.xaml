@@ -451,7 +451,7 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <Button Style="{StaticResource UpLoadtButton}" Content="Tải lên" FontSize="16" Padding="10,4" Margin="0,0,6,0" />
+                            <Button Style="{StaticResource UpLoadtButton}" x:Name="btnUpload" Click="BtnUpload_Click" Content="Tải lên" FontSize="16" Padding="10,4" Margin="0,0,6,0" />
                             <Button Style="{StaticResource SimpleButton}" x:Name="BtnRefresh" Content="Làm mới" FontSize="16" Padding="10,4"/>
                         </StackPanel>
                     </Grid>
