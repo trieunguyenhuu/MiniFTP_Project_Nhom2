@@ -1,7 +1,8 @@
 ﻿using MiniFTPClient_WPF.home;
-using MiniFTPClient_WPF.tinnhan;
-using MiniFTPClient_WPF.thungrac;
+using MiniFTPClient_WPF.Services;
 using MiniFTPClient_WPF.setting;
+using MiniFTPClient_WPF.thungrac;
+using MiniFTPClient_WPF.tinnhan;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -21,6 +22,8 @@ namespace MiniFTPClient_WPF
         {
             InitializeComponent();
             MainFrame.Navigate(new MiniFTPClient_WPF.home.Page1());
+            // Đăng ký sự kiện khi bấm nút X
+            this.Closing += MainWindow_Closing;
         }
 
         private void SetHeader(string title)
@@ -50,6 +53,15 @@ namespace MiniFTPClient_WPF
         {
             MainFrame.Navigate(new Setting());
             SetHeader("Cài đặt");
+        }
+
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // Trước khi tắt, gửi lệnh QUIT cho server biết
+            if (FtpClientService.Instance.IsConnected)
+            {
+                FtpClientService.Instance.Disconnect();
+            }
         }
     }
 }
