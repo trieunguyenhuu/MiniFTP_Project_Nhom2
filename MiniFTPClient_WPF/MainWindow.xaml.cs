@@ -22,7 +22,11 @@ namespace MiniFTPClient_WPF
         {
             InitializeComponent();
             MainFrame.Navigate(new MiniFTPClient_WPF.home.Page1());
-            txtUserName.Text = FtpClientService.Instance.CurrentFullName;
+            // Kiểm tra null để tránh lỗi nếu chưa kịp login mà chạy thẳng MainWindow để test
+            if (FtpClientService.Instance.CurrentFullName != null)
+            {
+                txtUserName.Text = FtpClientService.Instance.CurrentFullName;
+            }
             // Đăng ký sự kiện khi bấm nút X
             this.Closing += MainWindow_Closing;
         }
@@ -54,6 +58,18 @@ namespace MiniFTPClient_WPF
         {
             MainFrame.Navigate(new Setting());
             SetHeader("Cài đặt");
+        }
+
+        private void BtnLogout_Click(object sender, RoutedEventArgs e)
+        {
+            // 1. Tạo và hiển thị lại màn hình Đăng nhập
+            LoginForm loginForm = new LoginForm();
+            loginForm.Show();
+
+            // 2. Đóng màn hình chính
+            // Lưu ý: Lệnh Close() này sẽ kích hoạt sự kiện MainWindow_Closing ở dưới,
+            // nên nó sẽ tự động gửi lệnh QUIT và ngắt kết nối FTP luôn.
+            this.Close();
         }
 
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)

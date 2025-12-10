@@ -216,7 +216,7 @@
                 <!-- PHẦN 3: Đăng xuất -->
                 <StackPanel Grid.Row="2" Margin="16">
                     <Border Height="1" Background="#E5E7EB" Margin="-16,0,-16,16"/>
-                    <Button Style="{StaticResource SidebarButton}" Background="#FEF2F2" BorderThickness="1" BorderBrush="#FECACA">
+                    <Button x:Name="btnLogout" Click="BtnLogout_Click" Style="{StaticResource SidebarButton}" Background="#FEF2F2" BorderThickness="1" BorderBrush="#FECACA">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Icon:PackIconMaterial Kind="Logout" VerticalAlignment="Center" Width="22" Height="22" Foreground="#DC2626"/>
                             <TextBlock Text="  Đăng xuất" FontSize="20" VerticalAlignment="Center" Foreground="#DC2626" FontWeight="SemiBold"/>
