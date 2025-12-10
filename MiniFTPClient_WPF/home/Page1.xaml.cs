@@ -35,11 +35,8 @@ namespace MiniFTPClient_WPF.home
             // Khởi tạo Breadcrumb
             Breadcrumbs.Add("Home");
 
-            // 🔹 GỌI DỮ LIỆU THẬT TỪ SERVER
-            // Constructor không thể await, nên ta gọi dạng fire-and-forget
             _ = LoadFilesFromServer();
 
-            // 🔹 Khởi tạo list người dùng & bind vào RecipientList
             InitSampleUsers();
             RecipientList.ItemsSource = _users;
 
@@ -74,36 +71,6 @@ namespace MiniFTPClient_WPF.home
             catch (Exception ex)
             {
                 MessageBox.Show("Không thể tải danh sách file: " + ex.Message);
-            }
-        }
-
-        // Sự kiện nút Tải xuống
-        private async void BtnDownload_Click(object sender, RoutedEventArgs e)
-        {
-            if (FileListBox.SelectedItem is not FileItem item || item.IsFolder) return;
-
-            SaveFileDialog dlg = new SaveFileDialog();
-            dlg.FileName = item.Name;
-            if (dlg.ShowDialog() == true)
-            {
-                bool ok = await FtpClientService.Instance.DownloadFileAsync(item.Id, dlg.FileName, item.SizeBytes);
-                MessageBox.Show(ok ? "Tải xong!" : "Lỗi tải file");
-            }
-        }
-
-        // Sự kiện nút Xóa
-        private async void BtnDelete_Click(object sender, RoutedEventArgs e)
-        {
-            if (FileListBox.SelectedItem is not FileItem item) return;
-
-            if (MessageBox.Show($"Chuyển '{item.Name}' vào thùng rác?", "Xác nhận", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-            {
-                bool ok = await FtpClientService.Instance.DeleteFileAsync(item.Id);
-                if (ok)
-                {
-                    // Refresh lại list
-                    await LoadFilesFromServer();
-                }
             }
         }
 

@@ -45,15 +45,20 @@ namespace MiniFtpServer_WPF.Services
 
                         if (cmd == "LOGIN")
                         {
-                            _userId = _dbService.CheckLogin(parts[1], parts[2]);
-                            if (_userId != -1)
+                            var userInfo = _dbService.CheckLoginGetInfo(parts[1], parts[2]); 
+                            if (userInfo != null)
                             {
-                                _username = parts[1];
+                                _userId = userInfo.Item1;
+                                _username = parts[1]; // username đăng nhập
+                                string fullName = userInfo.Item2; // Tên hiển thị
+
                                 _currentFolderId = _dbService.GetUserRootFolderId(_userId);
-                                await writer.WriteLineAsync($"LOGIN_SUCCESS|Chào {_username}");
-                                _logAction($"User {_username} đã đăng nhập.");
+
+                                // Trả về: LOGIN_SUCCESS|TenHienThi
+                                await writer.WriteLineAsync($"LOGIN_SUCCESS|{fullName}");
+                                _logAction($"User {_username} ({fullName}) đã đăng nhập.");
                             }
-                            else await writer.WriteLineAsync("LOGIN_FAIL|Sai thông tin");
+                            else { await writer.WriteLineAsync("LOGIN_FAIL|Sai tài khoản"); }
                             continue;
                         }
 
@@ -73,27 +78,31 @@ namespace MiniFtpServer_WPF.Services
                                 break;
 
                             case "UPLOAD": // UPLOAD|Name|Size
-                                string fName = parts[1];
-                                long fSize = long.Parse(parts[2]);
-                                string phyName = Guid.NewGuid().ToString() + Path.GetExtension(fName);
-                                string savePath = Path.Combine(_storageRoot, phyName);
+                                string fileName = parts[1];
+                                long size = long.Parse(parts[2]);
+
+                                // Tạo folder riêng cho User nếu chưa có: MASTER_STORAGE/UserID/
+                                string userFolder = Path.Combine(_storageRoot, _userId.ToString());
+                                Directory.CreateDirectory(userFolder);
+
+                                string physicalName = Guid.NewGuid().ToString() + Path.GetExtension(fileName);
+                                string savePath = Path.Combine(userFolder, physicalName); // <-- Lưu vào folder con
 
                                 await writer.WriteLineAsync("UPLOAD_READY");
                                 using (var fs = new FileStream(savePath, FileMode.Create))
                                 {
                                     byte[] buf = new byte[8192];
                                     long total = 0;
-                                    while (total < fSize)
+                                    while (total < size)
                                     {
-                                        int r = await stream.ReadAsync(buf, 0, (int)Math.Min(buf.Length, fSize - total));
+                                        int r = await stream.ReadAsync(buf, 0, (int)Math.Min(buf.Length, size - total));
                                         if (r == 0) break;
                                         await fs.WriteAsync(buf, 0, r);
                                         total += r;
                                     }
                                 }
-                                _dbService.AddFile(_userId, _currentFolderId, fName, fSize, phyName);
-                                await writer.WriteLineAsync("UPLOAD_SUCCESS|OK");
-                                _logAction($"{_username} upload {fName}");
+                                _dbService.AddFile(_userId, _currentFolderId, fileName, size, physicalName);
+                                await writer.WriteLineAsync("UPLOAD_SUCCESS|Thành công");
                                 break;
 
                             case "DOWNLOAD": // DOWNLOAD|FileID
@@ -106,6 +115,18 @@ namespace MiniFtpServer_WPF.Services
                                     using (var fs = new FileStream(p, FileMode.Open)) await fs.CopyToAsync(stream);
                                 }
                                 else await writer.WriteLineAsync("ERROR|Không tìm thấy file");
+                                break;
+
+                            case "DELETE": // DELETE|FileID
+                                int delId = int.Parse(parts[1]);
+                                _dbService.SoftDeleteFile(delId);
+                                await writer.WriteLineAsync("DELETE_SUCCESS|Đã chuyển vào thùng rác");
+                                break;
+
+                            // CASE GET_USERS (Mới - Cho nút Share)
+                            case "GET_USERS":
+                                string users = _dbService.GetAllUsers();
+                                await writer.WriteLineAsync($"USERS_LIST|{users}");
                                 break;
                         }
                         if (cmd == "QUIT" || cmd == "LOGOUT")
