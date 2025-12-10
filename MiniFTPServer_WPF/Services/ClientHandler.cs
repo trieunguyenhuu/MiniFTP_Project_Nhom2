@@ -111,8 +111,26 @@ namespace MiniFtpServer_WPF.Services
                     }
                 }
             }
-            catch (Exception ex) { _logAction($"Lỗi client {ip}: {ex.Message}"); }
-            finally { _clientSocket.Close(); }
+            catch (IOException)
+            {
+                // Đây là lỗi khi Client tắt đột ngột hoặc Server Stop
+                _logAction($"Client {ip} đã ngắt kết nối.");
+            }
+            catch (ObjectDisposedException)
+            {
+                // Lỗi khi server stop và object bị hủy
+                _logAction($"Kết nối tới {ip} đã đóng.");
+            }
+            // -----------------------------
+            catch (Exception ex)
+            {
+                // Chỉ báo lỗi với những lỗi lạ khác
+                _logAction($"Lỗi lạ client {ip}: {ex.Message}");
+            }
+            finally
+            {
+                _clientSocket.Close();
+            }
         }
     }
 }
