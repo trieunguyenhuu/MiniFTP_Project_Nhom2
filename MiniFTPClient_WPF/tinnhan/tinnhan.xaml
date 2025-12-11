@@ -349,7 +349,7 @@
 
                     <!-- Combo dung lượng -->
                     <ComboBox x:Name="CbSenderFilter"
-                          Width="150"
+                          Width="180"
                           Padding="8,4"
                           FontSize="15"
                           HorizontalContentAlignment="Left">
@@ -370,10 +370,10 @@
                 <ColumnDefinition Width="auto"/>
             </Grid.ColumnDefinitions>
             <Border x:Name="SearchSentBorder" Grid.Column="0"
-        BorderBrush="LightGray" BorderThickness="1" Background="white"
-        CornerRadius="20" Padding="12,8" VerticalAlignment="Center"
-        MinWidth="280" HorizontalAlignment="Left" Width="280" Margin="0,0,0,10"
-        Visibility="Collapsed">
+                    BorderBrush="LightGray" BorderThickness="1" Background="white"
+                    CornerRadius="20" Padding="12,8" VerticalAlignment="Center"
+                    MinWidth="280" HorizontalAlignment="Left" Width="280" Margin="0,0,0,10"
+                    Visibility="Collapsed">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -433,6 +433,7 @@
                   HorizontalContentAlignment="Left">
                     <ComboBoxItem IsSelected="True" Content="Tất cả"/>
                     <ComboBoxItem IsSelected="True" Content="Nhỏ (&lt; 1MB)"/>
+                    <ComboBoxItem IsSelected="True" Content="Lớn (&gt; 10MB)"/>
                     <ComboBoxItem IsSelected="True" Content="Trung bình (1 - 10MB)"/>
                 </ComboBox>
             </StackPanel>
@@ -587,7 +588,7 @@
                                                     BorderThickness="1"
                                                     VerticalAlignment="Center"
                                                     Margin="0,0,12,0">
-                                                <Icon:PackIconMaterial Kind="FilePdfBox"
+                                                <Icon:PackIconMaterial Kind="FileImage"
                                                                        Width="22" Height="22"
                                                                        VerticalAlignment="Center"
                                                                        HorizontalAlignment="Center"

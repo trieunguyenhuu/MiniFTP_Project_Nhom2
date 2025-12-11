@@ -78,7 +78,7 @@ namespace MiniFTPClient_WPF.home
         private void SetButtonsEnabled(bool enabled)
         {
             if (btnUpload != null) btnUpload.IsEnabled = enabled;
-            if (BtnRefresh != null) BtnRefresh.IsEnabled = enabled;
+            //if (BtnRefresh != null) BtnRefresh.IsEnabled = enabled;
         }
 
         // ==================== BREADCRUMB & NAVIGATION ====================
