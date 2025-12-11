@@ -423,7 +423,6 @@
                     <ComboBoxItem IsSelected="True" Content="Tất cả"/>
                     <ComboBoxItem IsSelected="True" Content="Hôm nay"/>
                     <ComboBoxItem IsSelected="True" Content="7 ngày trước"/>
-                    <ComboBoxItem IsSelected="True" Content="Trong 30 ngày"/>
                 </ComboBox>
 
                 <!-- Combo dung lượng -->
