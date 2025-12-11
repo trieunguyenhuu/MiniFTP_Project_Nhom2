@@ -37,7 +37,6 @@ namespace MiniFTPClient_WPF.home
 
             _ = LoadFilesFromServer();
 
-            InitSampleUsers();
             RecipientList.ItemsSource = _users;
 
             UpdateShareButtonState();
@@ -135,13 +134,6 @@ namespace MiniFTPClient_WPF.home
             public string AvatarPath { get; set; } = "";
         }
 
-        private void InitSampleUsers()
-        {
-            _users.Add(new UserItem { Name = "Kiều Dung", AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg" });
-            _users.Add(new UserItem { Name = "Sly 🐰", AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg" });
-            _users.Add(new UserItem { Name = "Mai Kiều Trang", AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg" });
-            _users.Add(new UserItem { Name = "Admin", AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg" });
-        }
 
         // =========================================================
         // SHARE PANEL LOGIC (Giữ nguyên)
@@ -250,6 +242,7 @@ namespace MiniFTPClient_WPF.home
             return source as T;
         }
 
+        // Hàm Right_Click mở rộng cho client (chia sẻ, tải xuống,...)
         private void FileListBox_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             var dep = (DependencyObject)e.OriginalSource;
@@ -264,18 +257,33 @@ namespace MiniFTPClient_WPF.home
                 {
                     var cm = new ContextMenu();
 
-                    // Menu Chia sẻ
+                    // Menu Chia sẻ - CẬP NHẬT: tải danh sách user trước khi hiển thị
                     var miShare = new MenuItem { Header = "Chia sẻ" };
-                    miShare.Click += (s, args) => { ShowShareFor(file); };
+                    miShare.Click += async (s, args) =>
+                    {
+                        // Tải danh sách người dùng từ server
+                        await LoadUsersAndShowSharePanel(file);
+                    };
                     cm.Items.Add(miShare);
 
                     // Menu Tải xuống
                     var miDownload = new MenuItem { Header = "Tải xuống" };
                     miDownload.Click += async (s, args) =>
                     {
-                        // Gọi logic tải xuống (cần cài đặt thêm trong FtpClientService)
-                        // Ví dụ: await FtpClientService.Instance.DownloadFileAsync(file.Id, file.Name);
-                        MessageBox.Show("Tính năng tải xuống đang được cập nhật...", "Thông báo");
+                        // Mở hộp thoại lưu file
+                        SaveFileDialog dlg = new SaveFileDialog();
+                        dlg.FileName = file.Name; // Gợi ý tên file gốc
+
+                        if (dlg.ShowDialog() == true)
+                        {
+                            // Gọi Service để tải
+                            bool ok = await FtpClientService.Instance.DownloadFileAsync(file.Id, dlg.FileName, file.SizeBytes);
+
+                            if (ok)
+                                MessageBox.Show("Tải xuống thành công!", "Thông báo");
+                            else
+                                MessageBox.Show("Tải thất bại. Vui lòng kiểm tra kết nối.", "Lỗi");
+                        }
                     };
                     cm.Items.Add(miDownload);
 
@@ -283,6 +291,34 @@ namespace MiniFTPClient_WPF.home
                     cm.Placement = PlacementMode.MousePoint;
                     cm.IsOpen = true;
                 }
+            }
+        }
+
+        // HÀM MỚI: Tải danh sách user và hiển thị SharePanel
+        private async Task LoadUsersAndShowSharePanel(FileItem file)
+        {
+            try
+            {
+                // Lấy danh sách tên user (string) từ server
+                var realUsers = await FtpClientService.Instance.GetUsersAsync();
+
+                _users.Clear();
+                // Duyệt qua từng tên và tạo UserItem
+                foreach (var name in realUsers)
+                {
+                    _users.Add(new UserItem
+                    {
+                        Name = name,
+                        AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
+                    });
+                }
+
+                // Hiển thị panel chia sẻ với file đã chọn
+                ShowShareFor(file);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Không thể tải danh sách người dùng: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
