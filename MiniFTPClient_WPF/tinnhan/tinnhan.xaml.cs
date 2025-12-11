@@ -16,6 +16,7 @@ namespace MiniFTPClient_WPF.tinnhan
         public string Size { get; set; }
         public bool IsReceived { get; set; }
         public DateTime Date { get; set; }
+        public string AvatarPath { get; set; }
 
         public string Initial
         {
@@ -53,7 +54,8 @@ namespace MiniFTPClient_WPF.tinnhan
                 Size = "2.5 MB",
                 Time = "20:46",
                 Date = new DateTime(2025, 11, 27),
-                IsReceived = true
+                IsReceived = true,
+                AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
             });
 
             _receivedMessages.Add(new MessageItem
@@ -63,7 +65,30 @@ namespace MiniFTPClient_WPF.tinnhan
                 Size = "320 KB",
                 Time = "10:15",
                 Date = new DateTime(2025, 11, 24),
-                IsReceived = true
+                IsReceived = true,
+                AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
+            });
+
+            _receivedMessages.Add(new MessageItem
+            {
+                Sender = "admin",
+                FileName = "ảnh.png",
+                Size = "320 KB",
+                Time = "10:17",
+                Date = new DateTime(2025, 11, 24),
+                IsReceived = true,
+                AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
+            });
+
+            _receivedMessages.Add(new MessageItem
+            {
+                Sender = "admin",
+                FileName = "Thống kê.sxln",
+                Size = "320 KB",
+                Time = "10:25",
+                Date = new DateTime(2025, 11, 24),
+                IsReceived = true,
+                AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
             });
 
             // Tin đã gửi
@@ -74,7 +99,8 @@ namespace MiniFTPClient_WPF.tinnhan
                 Size = "4.8 MB",
                 Time = "22:46",
                 Date = new DateTime(2025, 11, 24),
-                IsReceived = false
+                IsReceived = false,
+                AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
             });
 
             _sentMessages.Add(new MessageItem
@@ -84,7 +110,30 @@ namespace MiniFTPClient_WPF.tinnhan
                 Size = "1.2 MB",
                 Time = "09:02",
                 Date = new DateTime(2025, 11, 27),
-                IsReceived = false
+                IsReceived = false,
+                AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
+            });
+
+            _sentMessages.Add(new MessageItem
+            {
+                Sender = "admin",
+                FileName = "Invoice_2025_11.xlsx",
+                Size = "1.2 MB",
+                Time = "09:02",
+                Date = new DateTime(2025, 11, 27),
+                IsReceived = false,
+                AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
+            });
+
+            _sentMessages.Add(new MessageItem
+            {
+                Sender = "admin",
+                FileName = "Invoice_2025_11.xlsx",
+                Size = "1.2 MB",
+                Time = "09:02",
+                Date = new DateTime(2025, 11, 27),
+                IsReceived = false,
+                AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
             });
         }
 
@@ -121,32 +170,29 @@ namespace MiniFTPClient_WPF.tinnhan
             // TODO: thêm filter theo _sentMessages nếu bạn muốn
         }
 
-        // Tab tin nhắn nhận
         private void TabReceived_Click(object sender, RoutedEventArgs e)
         {
             ReceivedPanel.Visibility = Visibility.Visible;
             SentPanel.Visibility = Visibility.Collapsed;
 
-            ReceivedPanel.Opacity = 0;
-            ReceivedPanel.RenderTransform = new TranslateTransform();
+            SearchReceivedBorder.Visibility = Visibility.Visible;
+            FilterReceivedPanel.Visibility = Visibility.Visible;
 
-            Storyboard sb = (Storyboard)FindResource("FadeInStoryboard");
-            Storyboard.SetTarget(sb, ReceivedPanel);
-            sb.Begin();
+            SearchSentBorder.Visibility = Visibility.Collapsed;
+            FilterSentPanel.Visibility = Visibility.Collapsed;
         }
 
-        // Tab tin nhắn gửi
         private void TabSent_Click(object sender, RoutedEventArgs e)
         {
             SentPanel.Visibility = Visibility.Visible;
             ReceivedPanel.Visibility = Visibility.Collapsed;
 
-            SentPanel.Opacity = 0;
-            SentPanel.RenderTransform = new TranslateTransform();
+            SearchSentBorder.Visibility = Visibility.Visible;
+            FilterSentPanel.Visibility = Visibility.Visible;
 
-            Storyboard sb = (Storyboard)FindResource("FadeInStoryboard");
-            Storyboard.SetTarget(sb, SentPanel);
-            sb.Begin();
+            SearchReceivedBorder.Visibility = Visibility.Collapsed;
+            FilterReceivedPanel.Visibility = Visibility.Collapsed;
         }
+
     }
 }

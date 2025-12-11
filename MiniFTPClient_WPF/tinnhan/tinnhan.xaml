@@ -25,7 +25,7 @@
                          Duration="0:0:0.25" />
         </Storyboard>
 
-        <Style x:Key="TabButtonStyle" TargetType="ToggleButton">
+        <Style x:Key="TabButtonStyle" TargetType="RadioButton">
             <Setter Property="Background" Value="#F3F4F6"/>
             <Setter Property="Foreground" Value="#111827"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
@@ -38,7 +38,7 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="ToggleButton">
+                    <ControlTemplate TargetType="RadioButton">
                         <Border x:Name="Bd"
                                 Background="{TemplateBinding Background}"
                                 CornerRadius="20"
@@ -255,7 +255,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <ToggleButton x:Name="TabReceived"
+                <RadioButton x:Name="TabReceived"
                               Grid.Column="0"
                               Style="{StaticResource TabButtonStyle}"
                               IsChecked="True"
@@ -266,9 +266,9 @@
                                                Margin="0,0,6,0"/>
                         <TextBlock Text="Tin đã nhận"/>
                     </StackPanel>
-                </ToggleButton>
+                </RadioButton>
 
-                <ToggleButton x:Name="TabSent"
+                <RadioButton x:Name="TabSent"
                               Grid.Column="1"
                               Style="{StaticResource TabButtonStyle}"
                               IsChecked="False"
@@ -279,7 +279,7 @@
                                                Margin="0,0,6,0"/>
                         <TextBlock Text="Tin đã gửi"/>
                     </StackPanel>
-                </ToggleButton>
+                </RadioButton>
             </Grid>
         </Border>
 
@@ -319,7 +319,7 @@
                              BorderBrush="Gray"/>
                             <TextBlock Grid.Column="1"
                                x:Name="SearchPlaceholderReceived"
-                               Text=" Tìm kiếm người gửi..."
+                               Text=" Tìm kiếm"
                                FontSize="14"
                                Foreground="#6B7280"
                                VerticalAlignment="Center"
@@ -343,7 +343,8 @@
                           HorizontalContentAlignment="Left">
                         <ComboBoxItem IsSelected="True" Content="Tất cả"/>
                         <ComboBoxItem IsSelected="True" Content="Hôm nay"/>
-                        <ComboBoxItem IsSelected="True" Content="7 ngày trước"/>
+                        <ComboBoxItem IsSelected="True" Content="Trong 7 ngày"/>
+                        <ComboBoxItem IsSelected="True" Content="Trong 30 ngày"/>
                     </ComboBox>
 
                     <!-- Combo dung lượng -->
@@ -362,61 +363,81 @@
         </Grid>
 
         <!-- Search: Sent -->
-        <Border x:Name="SearchSentBorder"
-                Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" Background="white"
-                CornerRadius="20" Padding="12,8" VerticalAlignment="Center"
-                MinWidth="280" HorizontalAlignment="Left" Width="280" Margin="0,0,0,10"
-                Visibility="Collapsed">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <Border x:Name="SearchSentBorder" Grid.Column="0"
+        BorderBrush="LightGray" BorderThickness="1" Background="white"
+        CornerRadius="20" Padding="12,8" VerticalAlignment="Center"
+        MinWidth="280" HorizontalAlignment="Left" Width="280" Margin="0,0,0,10"
+        Visibility="Collapsed">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-                <Icon:PackIconMaterial Grid.Column="0" Kind="Magnify" Width="18" Height="18" VerticalAlignment="Center" Foreground="#6B7280" Margin="0,0,8,0"/>
-                <TextBox Grid.Column="1"
-                         x:Name="SearchBoxSent"
-                         Background="Transparent"
-                         BorderThickness="0"
-                         Padding="2"
-                         VerticalAlignment="Center"
-                         FontSize="14"
-                         Foreground="#1F2937"
-                         Text=""
-                         MinWidth="200"
-                         Cursor="IBeam"
-                         HorizontalAlignment="Stretch"
-                         TextChanged="SearchBoxSent_TextChanged"
-                         BorderBrush="Gray"/>
-                <TextBlock Grid.Column="1"
-                           x:Name="SearchPlaceholderSent"
-                           Text=" Tìm kiếm tin đã gửi..."
-                           FontSize="14"
-                           Foreground="#6B7280"
-                           VerticalAlignment="Center"
-                           Margin="2,0,0,0"
-                           IsHitTestVisible="False"/>
-            </Grid>
-        </Border>
+                    <Icon:PackIconMaterial Grid.Column="0" Kind="Magnify" Width="18" Height="18" VerticalAlignment="Center" Foreground="#6B7280" Margin="0,0,8,0"/>
+                    <TextBox Grid.Column="1"
+                 x:Name="SearchBoxSent"
+                 Background="Transparent"
+                 BorderThickness="0"
+                 Padding="2"
+                 VerticalAlignment="Center"
+                 FontSize="14"
+                 Foreground="#1F2937"
+                 Text=""
+                 MinWidth="200"
+                 Cursor="IBeam"
+                 HorizontalAlignment="Stretch"
+                 TextChanged="SearchBoxSent_TextChanged"
+                 BorderBrush="Gray"/>
+                    <TextBlock Grid.Column="1"
+                   x:Name="SearchPlaceholderSent"
+                   Text=" Tìm kiếm tin đã gửi..."
+                   FontSize="14"
+                   Foreground="#6B7280"
+                   VerticalAlignment="Center"
+                   Margin="2,0,0,0"
+                   IsHitTestVisible="False"/>
+                </Grid>
+            </Border>
 
-        <!-- Filters: Received -->
-        
+            <StackPanel x:Name="FilterSentPanel"
+                Grid.Column="2"
+                Orientation="Horizontal"
+                Margin="0,0,0,12"
+                HorizontalAlignment="Left"
+                Visibility="Visible">
 
-        <!-- Filters: Sent -->
-        <StackPanel x:Name="FilterSentPanel"
-                    Grid.Row="2"
-                    Orientation="Horizontal"
-                    Margin="0,0,0,12"
-                    HorizontalAlignment="Left"
-                    Visibility="Collapsed">
-            <Button Style="{StaticResource FilterButton}"
-                    Content="Tất cả thời gian"
-                    Width="180"/>
-            <Button Style="{StaticResource FilterButton}"
-                    Content="Tất cả người nhận"
-                    Width="200"
-                    Margin="8,0,0,0"/>
-        </StackPanel>
+                <!-- Combo ngày nhận -->
+                <ComboBox x:Name="CbSentDateFilter"
+                  Width="150"
+                  Padding="8,4"
+                  Margin="0,0,8,0"
+                  FontSize="15"
+                  HorizontalContentAlignment="Left">
+                    <ComboBoxItem IsSelected="True" Content="Tất cả"/>
+                    <ComboBoxItem IsSelected="True" Content="Hôm nay"/>
+                    <ComboBoxItem IsSelected="True" Content="7 ngày trước"/>
+                    <ComboBoxItem IsSelected="True" Content="Trong 30 ngày"/>
+                </ComboBox>
+
+                <!-- Combo dung lượng -->
+                <ComboBox x:Name="CbSentFilter"
+                  Width="180"
+                  Padding="8,4"
+                  FontSize="15"
+                  HorizontalContentAlignment="Left">
+                    <ComboBoxItem IsSelected="True" Content="Tất cả"/>
+                    <ComboBoxItem IsSelected="True" Content="Nhỏ (&lt; 1MB)"/>
+                    <ComboBoxItem IsSelected="True" Content="Trung bình (1 - 10MB)"/>
+                </ComboBox>
+            </StackPanel>
+        </Grid>
 
         <!--TIN ĐÃ NHẬN-->
         <Border x:Name="ReceivedPanel"
@@ -429,7 +450,7 @@
                 Margin="0,5,0,0"
                 Visibility="Visible">
 
-            <ScrollViewer VerticalScrollBarVisibility="Hidden"
+            <ScrollViewer VerticalScrollBarVisibility="Visible"
                           HorizontalScrollBarVisibility="Hidden"
                           PanningMode="VerticalOnly">
 
@@ -493,9 +514,9 @@
                                                 <Setter Property="Effect">
                                                     <Setter.Value>
                                                         <DropShadowEffect Color="#3B82F6"
-                                          BlurRadius="16"
-                                          ShadowDepth="4"
-                                          Opacity="0.35"/>
+                                                                          BlurRadius="16"
+                                                                          ShadowDepth="4"
+                                                                          Opacity="0.35"/>
                                                     </Setter.Value>
                                                 </Setter>
                                             </Trigger>
@@ -521,31 +542,29 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <Border Grid.Column="0"
-                                                Width="40" Height="40"
-                                                CornerRadius="20"
-                                                Background="#E5E7EB"
-                                                VerticalAlignment="Top">
-                                            <!--#region avatar-->
-                                            <TextBlock Text="{Binding Initial}"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center"
-                                                       FontWeight="SemiBold"/>
-                                        </Border>
+                                        <Ellipse Grid.Column="0"
+                                                 Width="40" Height="40"
+                                                 VerticalAlignment="Top">
+                                            <Ellipse.Fill>
+                                                <ImageBrush ImageSource="{Binding AvatarPath}"  Stretch="UniformToFill"/>
+                                            </Ellipse.Fill>
+                                        </Ellipse>
 
                                         <StackPanel Grid.Column="1"
                                                     Margin="12,0,0,0">
                                             <TextBlock Text="{Binding Sender}"
-                                                       FontWeight="SemiBold"/>
+                                                       FontWeight="SemiBold"
+                                                       FontSize="16"/>
                                             <TextBlock Text="đã nhận 1 file"
                                                        Foreground="#6B7280"
-                                                       FontSize="12"/>
+                                                       FontSize="13"/>
                                         </StackPanel>
 
                                         <TextBlock Grid.Column="2"
                                                    Text="{Binding Time}"
                                                    Foreground="#6B7280"
-                                                   VerticalAlignment="Top"/>
+                                                   VerticalAlignment="Top"
+                                                   FontSize="13"/>
                                     </Grid>
 
                                     <Border Grid.Row="1"
@@ -580,16 +599,17 @@
                                                         VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding FileName}"
                                                            FontWeight="SemiBold"
-                                                           Margin="0,0,0,4"/>
+                                                           Margin="0,0,0,4"
+                                                           FontSize="15"/>
                                                 <StackPanel Orientation="Horizontal">
                                                     <Border Style="{StaticResource TagChip}">
                                                         <TextBlock Text="{Binding Size}"
-                                                                   FontSize="11"
+                                                                   FontSize="13"
                                                                    Foreground="#374151"/>
                                                     </Border>
                                                     <Border Style="{StaticResource TagChip}">
                                                         <TextBlock Text="File"
-                                                                   FontSize="11"
+                                                                   FontSize="13"
                                                                    Foreground="#374151"/>
                                                     </Border>
                                                 </StackPanel>
@@ -725,30 +745,29 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <Border Grid.Column="0"
-                                                Width="40" Height="40"
-                                                CornerRadius="20"
-                                                Background="#E5E7EB"
-                                                VerticalAlignment="Top">
-                                            <TextBlock Text="{Binding Initial}"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center"
-                                                       FontWeight="SemiBold"/>
-                                        </Border>
+                                        <Ellipse Grid.Column="0"
+                                                 Width="40" Height="40"
+                                                 VerticalAlignment="Top">
+                                            <Ellipse.Fill>
+                                                <ImageBrush ImageSource="{Binding AvatarPath}"  Stretch="UniformToFill"/>
+                                            </Ellipse.Fill>
+                                        </Ellipse>
 
                                         <StackPanel Grid.Column="1"
                                                     Margin="12,0,0,0">
                                             <TextBlock Text="{Binding Sender}"
-                                                       FontWeight="SemiBold"/>
+                                                       FontWeight="SemiBold"
+                                                       FontSize="16"/>
                                             <TextBlock Text="bạn đã gửi 1 file"
                                                        Foreground="#6B7280"
-                                                       FontSize="12"/>
+                                                       FontSize="13"/>
                                         </StackPanel>
 
                                         <TextBlock Grid.Column="2"
                                                    Text="{Binding Time}"
                                                    Foreground="#6B7280"
-                                                   VerticalAlignment="Top"/>
+                                                   VerticalAlignment="Top"
+                                                   FontSize="13"/>
                                     </Grid>
 
                                     <Border Grid.Row="1"
@@ -783,23 +802,23 @@
                                                         VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding FileName}"
                                                            FontWeight="SemiBold"
-                                                           Margin="0,0,0,4"/>
+                                                           Margin="0,0,0,4"
+                                                           FontSize="15"/>
                                                 <StackPanel Orientation="Horizontal">
                                                     <Border Style="{StaticResource TagChip}">
                                                         <TextBlock Text="{Binding Size}"
-                                                                   FontSize="11"
+                                                                   FontSize="13"
                                                                    Foreground="#374151"/>
                                                     </Border>
                                                     <Border Style="{StaticResource TagChip}">
                                                         <TextBlock Text="File"
-                                                                   FontSize="11"
+                                                                   FontSize="13"
                                                                    Foreground="#374151"/>
                                                     </Border>
                                                 </StackPanel>
                                             </StackPanel>
                                         </Grid>
                                     </Border>
-
                                 </Grid>
                             </Border>
                         </DataTemplate>
