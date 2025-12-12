@@ -311,7 +311,7 @@ namespace MiniFTPClient_WPF.Services
                         var items = data.Split(';', StringSplitOptions.RemoveEmptyEntries);
                         foreach (var item in items)
                         {
-                            var parts = item.Split(':');
+                            var parts = item.Split('|');
                             // FILE:id:name:size:date
                             if (parts.Length >= 5)
                             {
