@@ -162,7 +162,7 @@ namespace MiniFtpServer_WPF.Services
             return sb.ToString();
         }
 
-        // ==================== LẤY FILE LIST BIN FILEs ====================
+        // ==================== LẤY DANH SÁCH FILE ĐÃ XÓA ====================
         public List<Tuple<int, string, long, DateTime>> GetDeletedFiles(int userId)
         {
             var list = new List<Tuple<int, string, long, DateTime>>();
@@ -200,6 +200,134 @@ namespace MiniFtpServer_WPF.Services
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
             return list;
+        }
+
+        // ==================== KHÔI PHỤC FILE ====================
+        public bool RestoreFile(int fileId)
+        {
+            try
+            {
+                using (var conn = new SQLiteConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = "UPDATE Files SET is_deleted = 0 WHERE file_id = @id";
+                    using (var cmd = new SQLiteCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@id", fileId);
+                        return cmd.ExecuteNonQuery() > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi khôi phục file: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        // ==================== XÓA VĨNH VIỄN FILE ====================
+        public bool PermanentDeleteFile(int fileId)
+        {
+            try
+            {
+                using (var conn = new SQLiteConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // Lấy storage_path để xóa file vật lý
+                    string getPath = "SELECT storage_path FROM Files WHERE file_id = @id";
+                    string storagePath = null;
+
+                    using (var cmd = new SQLiteCommand(getPath, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@id", fileId);
+                        storagePath = cmd.ExecuteScalar()?.ToString();
+                    }
+
+                    // Xóa record trong DB
+                    string deleteSql = "DELETE FROM Files WHERE file_id = @id";
+                    using (var cmd = new SQLiteCommand(deleteSql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@id", fileId);
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    // Xóa file vật lý nếu tồn tại
+                    if (!string.IsNullOrEmpty(storagePath))
+                    {
+                        string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                            "MASTER_STORAGE", storagePath);
+                        if (File.Exists(fullPath))
+                        {
+                            File.Delete(fullPath);
+                        }
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi xóa vĩnh viễn: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        // ==================== XÓA TẤT CẢ FILE TRONG THÙNG RÁC ====================
+        public bool EmptyTrash(int userId)
+        {
+            try
+            {
+                using (var conn = new SQLiteConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // Lấy danh sách file cần xóa vật lý
+                    string getFiles = "SELECT storage_path FROM Files WHERE owner_user_id = @uid AND is_deleted = 1";
+                    var paths = new List<string>();
+
+                    using (var cmd = new SQLiteCommand(getFiles, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@uid", userId);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                paths.Add(reader.GetString(0));
+                            }
+                        }
+                    }
+
+                    // Xóa records trong DB
+                    string deleteSql = "DELETE FROM Files WHERE owner_user_id = @uid AND is_deleted = 1";
+                    using (var cmd = new SQLiteCommand(deleteSql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@uid", userId);
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    // Xóa files vật lý
+                    foreach (var path in paths)
+                    {
+                        string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                            "MASTER_STORAGE", userId.ToString(), path);
+                        if (File.Exists(fullPath))
+                        {
+                            try { File.Delete(fullPath); } catch { }
+                        }
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi dọn dẹp thùng rác: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
         }
 
         // ==================== THÊM FILE ====================

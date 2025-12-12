@@ -14,7 +14,6 @@ namespace MiniFtpServer_WPF.Services
         public const string LOGIN_FAIL = "LOGIN_FAIL";
         public const string LIST = "LIST";
         public const string LIST_SUCCESS = "LIST_SUCCESS";
-        public const string GET_TRASH = "GET_TRASH";
         public const string MKDIR = "MKDIR";
         public const string MKDIR_SUCCESS = "MKDIR_SUCCESS";
         public const string UPLOAD = "UPLOAD";
@@ -30,6 +29,11 @@ namespace MiniFtpServer_WPF.Services
         public const string QUIT = "QUIT";
         public const string LOGOUT = "LOGOUT";
         public const string ERROR = "ERROR";
+
+        public const string GET_TRASH = "GET_TRASH";
+        public const string RESTORE_FILE = "RESTORE_FILE";
+        public const string PERMANENT_DELETE = "PERMANENT_DELETE";
+        public const string EMPTY_TRASH = "EMPTY_TRASH";
     }
 
     public class ClientHandler
@@ -113,6 +117,18 @@ namespace MiniFtpServer_WPF.Services
 
                             case FtpCommands.GET_TRASH:
                                 await HandleGetTrash(writer);
+                                break;
+
+                            case FtpCommands.RESTORE_FILE:
+                                await HandleRestore(parts, writer);
+                                break;
+
+                            case FtpCommands.PERMANENT_DELETE:
+                                await HandlePermanentDelete(parts, writer);
+                                break;
+
+                            case FtpCommands.EMPTY_TRASH:
+                                await HandleEmptyTrash(writer);
                                 break;
 
                             case FtpCommands.MKDIR:
@@ -207,6 +223,86 @@ namespace MiniFtpServer_WPF.Services
             catch (Exception ex)
             {
                 await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi lấy thùng rác: {ex.Message}");
+            }
+        }
+
+        private async Task HandleRestore(string[] parts, StreamWriter writer)
+        {
+            try
+            {
+                if (parts.Length < 2)
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Thiếu ID file");
+                    return;
+                }
+
+                int fileId = int.Parse(parts[1]);
+                bool ok = _dbService.RestoreFile(fileId);
+
+                if (ok)
+                {
+                    await writer.WriteLineAsync("RESTORE_SUCCESS|Khôi phục thành công");
+                    _logAction($"♻ {_username} khôi phục file ID: {fileId}");
+                }
+                else
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Không thể khôi phục");
+                }
+            }
+            catch (Exception ex)
+            {
+                await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi khôi phục: {ex.Message}");
+            }
+        }
+
+        private async Task HandlePermanentDelete(string[] parts, StreamWriter writer)
+        {
+            try
+            {
+                if (parts.Length < 2)
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Thiếu ID file");
+                    return;
+                }
+
+                int fileId = int.Parse(parts[1]);
+                bool ok = _dbService.PermanentDeleteFile(fileId);
+
+                if (ok)
+                {
+                    await writer.WriteLineAsync("PERMANENT_DELETE_SUCCESS|Đã xóa vĩnh viễn");
+                    _logAction($"🗑 {_username} xóa vĩnh viễn file ID: {fileId}");
+                }
+                else
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Không thể xóa vĩnh viễn");
+                }
+            }
+            catch (Exception ex)
+            {
+                await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi xóa vĩnh viễn: {ex.Message}");
+            }
+        }
+
+        private async Task HandleEmptyTrash(StreamWriter writer)
+        {
+            try
+            {
+                bool ok = _dbService.EmptyTrash(_userId);
+
+                if (ok)
+                {
+                    await writer.WriteLineAsync("EMPTY_TRASH_SUCCESS|Đã dọn dẹp thùng rác");
+                    _logAction($"🧹 {_username} đã dọn dẹp thùng rác");
+                }
+                else
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Không thể dọn dẹp");
+                }
+            }
+            catch (Exception ex)
+            {
+                await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi dọn dẹp: {ex.Message}");
             }
         }
 
