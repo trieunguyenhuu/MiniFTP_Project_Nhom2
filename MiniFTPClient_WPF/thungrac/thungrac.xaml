@@ -167,7 +167,8 @@
                                        Margin="0,0,8,0"/>
 
                     <Border Style="{StaticResource SoftPillBorderStyle}" Grid.Column="1">
-                        <TextBlock Text="50 file"
+                        <TextBlock     x:Name="TxtFileCount"
+                                       Text="0 file"
                                        FontSize="16"
                                        FontWeight="SemiBold"
                                        Foreground="#4F46E5"

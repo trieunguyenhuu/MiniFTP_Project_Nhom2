@@ -51,7 +51,7 @@ namespace MiniFTPClient_WPF.thungrac
                 filedatagrid.ItemsSource = _items;
 
                 // Cập nhật số lượng
-                //TxtFileCount.Text = $"{_items.Count} file";
+                TxtFileCount.Text = $"{_items.Count} file";
             }
             catch (Exception ex)
             {
@@ -70,19 +70,88 @@ namespace MiniFTPClient_WPF.thungrac
         // Khôi phục file
         private async void BtnRestore_Click(object sender, RoutedEventArgs e)
         {
-            
+            var btn = sender as Button;
+            if (btn?.DataContext is not TrashItem item) return;
+
+            var result = MessageBox.Show(
+                $"Khôi phục file '{item.FileName}'?",
+                "Xác nhận",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                bool ok = await FtpClientService.Instance.RestoreFileAsync(item.FileId);
+
+                if (ok)
+                {
+                    MessageBox.Show("Khôi phục thành công!", "Thành công");
+                    await LoadTrashData();
+                }
+                else
+                {
+                    MessageBox.Show("Khôi phục thất bại!", "Lỗi");
+                }
+            }
         }
 
         // Xóa vĩnh viễn
         private async void BtnPermanentDelete_Click(object sender, RoutedEventArgs e)
         {
-           
+            var btn = sender as Button;
+            if (btn?.DataContext is not TrashItem item) return;
+
+            var result = MessageBox.Show(
+                $"XÓA VĨNH VIỄN file '{item.FileName}'?\nHành động này KHÔNG THỂ HOÀN TÁC!",
+                "Cảnh báo nghiêm trọng",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                bool ok = await FtpClientService.Instance.PermanentDeleteAsync(item.FileId);
+
+                if (ok)
+                {
+                    MessageBox.Show("Đã xóa vĩnh viễn!", "Thành công");
+                    await LoadTrashData();
+                }
+                else
+                {
+                    MessageBox.Show("Xóa thất bại!", "Lỗi");
+                }
+            }
         }
 
         // Dọn dẹp thùng rác
         private async void BtnEmptyTrash_Click(object sender, RoutedEventArgs e)
         {
-            
+            if (_items.Count == 0)
+            {
+                MessageBox.Show("Thùng rác đã trống!", "Thông báo");
+                return;
+            }
+
+            var result = MessageBox.Show(
+                $"XÓA VĨNH VIỄN TẤT CẢ {_items.Count} file?\nHành động này KHÔNG THỂ HOÀN TÁC!",
+                "Cảnh báo nghiêm trọng",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                bool ok = await FtpClientService.Instance.EmptyTrashAsync();
+
+                if (ok)
+                {
+                    MessageBox.Show("Đã dọn dẹp thùng rác!", "Thành công");
+                    await LoadTrashData();
+                }
+                else
+                {
+                    MessageBox.Show("Dọn dẹp thất bại!", "Lỗi");
+                }
+            }
         }
 
     }

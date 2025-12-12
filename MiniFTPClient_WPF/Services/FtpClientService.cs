@@ -24,7 +24,6 @@ namespace MiniFTPClient_WPF.Services
         public bool IsConnected => _client != null && _client.Connected;
         public string CurrentUsername { get; private set; }
 
-        // 👉 ĐÂY LÀ BIẾN BẠN ĐANG THIẾU
         public string CurrentFullName { get; private set; }
 
         private const string SERVER_IP = "127.0.0.1";
@@ -188,7 +187,6 @@ namespace MiniFTPClient_WPF.Services
             return result != null && result.StartsWith("DELETE_SUCCESS");
         }
 
-        // 👉 ĐÂY LÀ HÀM BẠN ĐANG THIẾU
         // 6. LẤY DANH SÁCH USER (Cho tính năng Share)
         public async Task<List<string>> GetUsersAsync()
         {
@@ -211,7 +209,7 @@ namespace MiniFTPClient_WPF.Services
                     {
                         string fullName = parts[1];
 
-                        // ✅ CHỈ THÊM NẾU KHÔNG PHẢI LÀ NGƯỜI DÙNG HIỆN TẠI
+                        // CHỈ THÊM NẾU KHÔNG PHẢI LÀ NGƯỜI DÙNG HIỆN TẠI
                         if (!string.Equals(fullName, CurrentFullName, StringComparison.OrdinalIgnoreCase))
                         {
                             list.Add(fullName);
@@ -294,22 +292,7 @@ namespace MiniFTPClient_WPF.Services
             }
         }
 
-        // Hàm lấy danh sách file trong thùng rác
-        private string FormatFileSize(long bytes)
-        {
-            string[] sizes = { "B", "KB", "MB", "GB" };
-            double len = bytes;
-            int order = 0;
-
-            while (len >= 1024 && order < sizes.Length - 1)
-            {
-                order++;
-                len /= 1024;
-            }
-
-            return $"{len:0.##} {sizes[order]}";
-        }
-
+        // 8. LẤY DANH SÁCH THÙNG RÁC
         public async Task<List<TrashItem>> GetTrashAsync()
         {
             var list = new List<TrashItem>();
@@ -347,6 +330,41 @@ namespace MiniFTPClient_WPF.Services
             }
             catch { }
             return list;
+        }
+
+        // 9. KHÔI PHỤC FILE
+        public async Task<bool> RestoreFileAsync(int fileId)
+        {
+            string result = await SendCommandAsync($"RESTORE_FILE|{fileId}");
+            return result != null && result.StartsWith("RESTORE_SUCCESS");
+        }
+
+        // 10. XÓA VĨNH VIỄN
+        public async Task<bool> PermanentDeleteAsync(int fileId)
+        {
+            string result = await SendCommandAsync($"PERMANENT_DELETE|{fileId}");
+            return result != null && result.StartsWith("PERMANENT_DELETE_SUCCESS");
+        }
+
+        // 11. DỌN DẸP THÙNG RÁC
+        public async Task<bool> EmptyTrashAsync()
+        {
+            string result = await SendCommandAsync("EMPTY_TRASH");
+            return result != null && result.StartsWith("EMPTY_TRASH_SUCCESS");
+        }
+
+        // Helper
+        private string FormatFileSize(long bytes)
+        {
+            string[] sizes = { "B", "KB", "MB", "GB" };
+            double len = bytes;
+            int order = 0;
+            while (len >= 1024 && order < sizes.Length - 1)
+            {
+                order++;
+                len /= 1024;
+            }
+            return $"{len:0.##} {sizes[order]}";
         }
     }
 }
