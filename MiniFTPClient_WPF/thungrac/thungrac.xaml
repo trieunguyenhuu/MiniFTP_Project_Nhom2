@@ -189,10 +189,10 @@
                         <TextBlock Grid.Column="1" x:Name="SearchPlaceholder" Text=" Tìm kiếm..." FontSize="14" Foreground="#6B7280" VerticalAlignment="Center" Margin="2,0,0,0" IsHitTestVisible="False"/>
                     </Grid>
                 </Border>
-                <Button Grid.Row="1" Style="{StaticResource DangerButtonStyle}" HorizontalAlignment="Right">
+                <Button Grid.Row="1" Style="{StaticResource DangerButtonStyle}" x:Name="BtnEmptyTrash" Click="BtnEmptyTrash_Click" HorizontalAlignment="Right">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Icon:PackIconMaterial Kind="DeleteOutline" VerticalAlignment="Center" Width="20" Height="20"/>
-                        <TextBlock Text=" Dọn dẹp" FontSize="18" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        <TextBlock Text=" Dọn dẹp"  FontSize="18" VerticalAlignment="Center" FontWeight="SemiBold"/>
                     </StackPanel>
                 </Button>
 
@@ -223,11 +223,11 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
-                                        <Button Style="{StaticResource gridEditButton}">
+                                        <Button Style="{StaticResource gridEditButton}" Click="BtnRestore_Click">
                                             <Icon:PackIconMaterial Kind="Refresh" Width="12" Height="12" VerticalAlignment="Center"/>
                                         </Button>
 
-                                        <Button Style="{StaticResource gridRemoveButton}" Margin="5 0 0 0">
+                                        <Button Style="{StaticResource gridRemoveButton}" Margin="5 0 0 0" Click="BtnPermanentDelete_Click">
                                             <Icon:PackIconMaterial Kind="DeleteOutline" Width="12" Height="12" VerticalAlignment="Center"/>
                                         </Button>
                                     </StackPanel>

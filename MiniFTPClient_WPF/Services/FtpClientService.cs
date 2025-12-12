@@ -1,10 +1,11 @@
-﻿using System;
+﻿using MiniFTPClient_WPF.Models;
+using MiniFTPClient_WPF.thungrac;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using MiniFTPClient_WPF.Models;
 
 namespace MiniFTPClient_WPF.Services
 {
@@ -293,5 +294,59 @@ namespace MiniFTPClient_WPF.Services
             }
         }
 
+        // Hàm lấy danh sách file trong thùng rác
+        private string FormatFileSize(long bytes)
+        {
+            string[] sizes = { "B", "KB", "MB", "GB" };
+            double len = bytes;
+            int order = 0;
+
+            while (len >= 1024 && order < sizes.Length - 1)
+            {
+                order++;
+                len /= 1024;
+            }
+
+            return $"{len:0.##} {sizes[order]}";
+        }
+
+        public async Task<List<TrashItem>> GetTrashAsync()
+        {
+            var list = new List<TrashItem>();
+            if (!IsConnected) return list;
+
+            try
+            {
+                await _writer.WriteLineAsync("GET_TRASH");
+                string resp = await _reader.ReadLineAsync();
+
+                if (resp != null && resp.StartsWith("TRASH_LIST"))
+                {
+                    string data = resp.Substring(11);
+                    if (!string.IsNullOrEmpty(data))
+                    {
+                        var items = data.Split(';', StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var item in items)
+                        {
+                            var parts = item.Split(':');
+                            // FILE:id:name:size:date
+                            if (parts.Length >= 5)
+                            {
+                                list.Add(new TrashItem
+                                {
+                                    FileId = int.Parse(parts[1]),
+                                    FileName = parts[2],
+                                    Size = FormatFileSize(long.Parse(parts[3])),
+                                    DeletedDate = DateTime.Parse(parts[4]),
+                                    OriginalPath = "/Home" // Tạm thời
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+            return list;
+        }
     }
 }
