@@ -162,6 +162,46 @@ namespace MiniFtpServer_WPF.Services
             return sb.ToString();
         }
 
+        // ==================== LẤY FILE LIST BIN FILEs ====================
+        public List<Tuple<int, string, long, DateTime>> GetDeletedFiles(int userId)
+        {
+            var list = new List<Tuple<int, string, long, DateTime>>();
+            try
+            {
+                using (var conn = new SQLiteConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = @"SELECT file_id, file_name, file_size, created_at 
+                          FROM Files 
+                          WHERE owner_user_id = @uid AND is_deleted = 1 AND is_folder = 0
+                          ORDER BY created_at DESC";
+
+                    using (var cmd = new SQLiteCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@uid", userId);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                int id = reader.GetInt32(0);
+                                string name = reader.GetString(1);
+                                long size = reader.GetInt64(2);
+                                DateTime date = reader.GetDateTime(3);
+
+                                list.Add(new Tuple<int, string, long, DateTime>(id, name, size, date));
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi lấy file đã xóa: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            return list;
+        }
+
         // ==================== THÊM FILE ====================
         public void AddFile(int userId, int parentId, string fileName, long size, string storagePath)
         {

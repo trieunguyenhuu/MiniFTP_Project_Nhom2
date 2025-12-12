@@ -261,7 +261,7 @@ namespace MiniFTPClient_WPF.home
                     var miShare = new MenuItem { Header = "Chia sẻ" };
                     miShare.Click += async (s, args) =>
                     {
-                        // Tải danh sách người dùng từ server
+                        // Tải danh sách người dùng từ server (đã loại bỏ người hiện tại)
                         await LoadUsersAndShowSharePanel(file);
                     };
                     cm.Items.Add(miShare);
@@ -295,15 +295,17 @@ namespace MiniFTPClient_WPF.home
         }
 
         // HÀM MỚI: Tải danh sách user và hiển thị SharePanel
+        // (Danh sách đã được lọc trong GetUsersAsync, không cần lọc lại ở đây)
         private async Task LoadUsersAndShowSharePanel(FileItem file)
         {
             try
             {
-                // Lấy danh sách tên user (string) từ server
+                // Lấy danh sách user từ server (đã loại bỏ người hiện tại trong Service)
                 var realUsers = await FtpClientService.Instance.GetUsersAsync();
 
                 _users.Clear();
-                // Duyệt qua từng tên và tạo UserItem
+
+                // Thêm vào UI (không cần kiểm tra lại vì đã lọc ở Service)
                 foreach (var name in realUsers)
                 {
                     _users.Add(new UserItem

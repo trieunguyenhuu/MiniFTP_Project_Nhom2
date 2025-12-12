@@ -16,6 +16,7 @@ namespace MiniFTPServer_WPF.Models
         public long Size { get; set; }
         public string StoragePath { get; set; } // Tên file vật lý
         public DateTime CreatedAt { get; set; }
+        public int IsDeleted { get; set; }
 
     }
 }
