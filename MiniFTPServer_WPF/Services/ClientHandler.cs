@@ -14,6 +14,7 @@ namespace MiniFtpServer_WPF.Services
         public const string LOGIN_FAIL = "LOGIN_FAIL";
         public const string LIST = "LIST";
         public const string LIST_SUCCESS = "LIST_SUCCESS";
+        public const string GET_TRASH = "GET_TRASH";
         public const string MKDIR = "MKDIR";
         public const string MKDIR_SUCCESS = "MKDIR_SUCCESS";
         public const string UPLOAD = "UPLOAD";
@@ -110,6 +111,10 @@ namespace MiniFtpServer_WPF.Services
                                 await HandleList(writer);
                                 break;
 
+                            case FtpCommands.GET_TRASH:
+                                await HandleGetTrash(writer);
+                                break;
+
                             case FtpCommands.MKDIR:
                                 await HandleMkdir(parts, writer);
                                 break;
@@ -180,6 +185,28 @@ namespace MiniFtpServer_WPF.Services
             catch (Exception ex)
             {
                 await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi lấy danh sách: {ex.Message}");
+            }
+        }
+
+        private async Task HandleGetTrash(StreamWriter writer)
+        {
+            try
+            {
+                var files = _dbService.GetDeletedFiles(_userId);
+                StringBuilder sb = new StringBuilder();
+
+                foreach (var file in files)
+                {
+                    // Format: FILE:id:name:size:deletedDate;
+                    sb.Append($"FILE:{file.Item1}:{file.Item2}:{file.Item3}:{file.Item4:yyyy-MM-dd HH:mm:ss};");
+                }
+
+                await writer.WriteLineAsync($"TRASH_LIST|{sb}");
+                _logAction($"📂 {_username} xem thùng rác");
+            }
+            catch (Exception ex)
+            {
+                await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi lấy thùng rác: {ex.Message}");
             }
         }
 
