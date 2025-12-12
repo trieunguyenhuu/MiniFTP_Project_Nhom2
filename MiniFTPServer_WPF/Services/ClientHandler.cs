@@ -89,10 +89,12 @@ namespace MiniFtpServer_WPF.Services
                                 _userId = userInfo.Item1;
                                 _username = parts[1];
                                 string fullName = userInfo.Item2;
+                                string email = userInfo.Item3;
+                                string description = userInfo.Item4;
 
                                 _currentFolderId = _dbService.GetUserRootFolderId(_userId);
 
-                                await writer.WriteLineAsync($"{FtpCommands.LOGIN_SUCCESS}|{fullName}");
+                                await writer.WriteLineAsync($"{FtpCommands.LOGIN_SUCCESS}|{fullName}|{email}|{description}");
                                 _logAction($"✓ User {_username} ({fullName}) đã đăng nhập từ {ip}");
                             }
                             else

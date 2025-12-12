@@ -25,6 +25,8 @@ namespace MiniFTPClient_WPF.Services
         public string CurrentUsername { get; private set; }
 
         public string CurrentFullName { get; private set; }
+        public string CurrentEmail { get; private set; }
+        public string CurrentDescription { get; private set; }
 
         private const string SERVER_IP = "127.0.0.1";
         private const int SERVER_PORT = 9999;
@@ -67,10 +69,13 @@ namespace MiniFTPClient_WPF.Services
 
                 if (response != null && response.StartsWith("LOGIN_SUCCESS"))
                 {
+                    
                     CurrentUsername = username;
                     // Lấy tên hiển thị: LOGIN_SUCCESS|Nguyễn Lan Anh
                     var parts = response.Split('|');
                     CurrentFullName = parts.Length > 1 ? parts[1] : username;
+                    CurrentEmail = parts.Length > 2 ? parts[2] : "";
+                    CurrentDescription = parts.Length > 3 ? parts[3] : "";
                     return "OK";
                 }
                 return response?.Split('|')[1] ?? "Lỗi không xác định";

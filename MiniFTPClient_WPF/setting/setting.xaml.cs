@@ -44,6 +44,10 @@ namespace MiniFTPClient_WPF.setting
 
                     // Email có thể để trống hoặc lấy từ DB nếu có
                     // TxtEmail.Text = "..."; // Nếu có trong Service
+                    string email = FtpClientService.Instance.CurrentEmail;
+                    TxtEmailCT.Text = email ;
+                    string description = FtpClientService.Instance.CurrentDescription;
+                    TxtDescription.Text = description ;
                 }
                 else
                 {
@@ -94,7 +98,7 @@ namespace MiniFTPClient_WPF.setting
                 }
 
                 // TODO: Gửi lệnh UPDATE_PROFILE lên server
-                // await FtpClientService.Instance.UpdateProfileAsync(username, email, fullName);
+                //await FtpClientService.Instance.UpdateProfileAsync(username, email, fullName);
 
                 MessageBox.Show("Chức năng cập nhật thông tin đang được phát triển!",
                     "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -175,14 +179,14 @@ namespace MiniFTPClient_WPF.setting
                 try
                 {
                     // TODO: Gửi lệnh CHANGE_PASSWORD lên server
-                    // string result = await FtpClientService.Instance.ChangePasswordAsync(currentPwd, newPwd);
+                    string result = await FtpClientService.Instance.ChangePasswordAsync(currentPwd, newPwd);
 
                     // Giả lập thành công (xóa dòng này khi có API thật)
                     await System.Threading.Tasks.Task.Delay(500);
 
-                    MessageBox.Show("Chức năng đổi mật khẩu đang được phát triển!\n\n" +
-                        "Khi hoàn thiện, bạn sẽ cần đăng nhập lại sau khi đổi mật khẩu.",
-                        "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    //MessageBox.Show("Chức năng đổi mật khẩu đang được phát triển!\n\n" +
+                    //    "Khi hoàn thiện, bạn sẽ cần đăng nhập lại sau khi đổi mật khẩu.",
+                    //    "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
 
                     // Xóa các ô nhập sau khi thành công
                     ClearPasswordFields();
@@ -373,5 +377,11 @@ namespace MiniFTPClient_WPF.setting
 
             ConfirmPwdPlaceholder.Visibility = isEmpty ? Visibility.Visible : Visibility.Collapsed;
         }
+
+        private void BtnSaveProfile_Click_1(object sender, RoutedEventArgs e)
+        {
+
+        }
+
     }
 }

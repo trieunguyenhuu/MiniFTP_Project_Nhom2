@@ -491,7 +491,7 @@
                                Margin="5,0,0,4"/>
                             <TextBox Style="{StaticResource RoundedTextBoxStyle}"
                              Tag="Nhập email..."
-                             Text=""/>
+                             Text="" x:Name="TxtEmailCT"/>
                         </StackPanel>
                     </Grid>
 
@@ -520,8 +520,9 @@
                                Foreground="#6B7280"
                                FontWeight="SemiBold"
                                Margin="5,0,0,4"/>
-                            <TextBox Style="{StaticResource RoundedTextBoxStyle}"
-                             Text="Người dùng thông thường"
+                            <TextBox Style="{StaticResource RoundedTextBoxStyle}" 
+                             Tag= "..."
+                             Text="" x:Name="TxtDescription"
                              IsReadOnly="True"/>
                         </StackPanel>
                     </Grid>
@@ -530,7 +531,7 @@
                     <Button x:Name="BtnSaveProfile"
                     Content="Lưu thay đổi" Margin="0,20,0,0"
                     Style="{StaticResource PrimaryButtonStyle}"
-                    HorizontalAlignment="Center"/>
+                    HorizontalAlignment="Center" Click="BtnSaveProfile_Click_1"/>
                 </StackPanel>
 
 
@@ -776,7 +777,7 @@
                             </StackPanel>
                             </Grid>
 
-                        <Button x:Name="BtnChangePassword"
+                        <Button x:Name="BtnChangePassword" Click="BtnChangePassword_Click"
                             Content="Cập nhật"
                             Style="{StaticResource PrimaryButtonStyle}"
                             HorizontalAlignment="Center"/>

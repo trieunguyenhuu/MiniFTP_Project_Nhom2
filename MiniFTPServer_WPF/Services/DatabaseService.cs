@@ -58,7 +58,7 @@ namespace MiniFtpServer_WPF.Services
         }
 
         // ==================== LOGIN MỚI (Hash password) ====================
-        public Tuple<int, string> CheckLoginGetInfo(string username, string password)
+        public Tuple<int, string, string, string> CheckLoginGetInfo(string username, string password)
         {
             try
             {
@@ -67,7 +67,7 @@ namespace MiniFtpServer_WPF.Services
                 using (var conn = new SQLiteConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = "SELECT user_id, full_name FROM Users WHERE username = @u AND password = @p";
+                    string sql = "SELECT user_id, full_name, Email, Description FROM Users WHERE username = @u AND password = @p";
 
                     using (var cmd = new SQLiteCommand(sql, conn))
                     {
@@ -79,8 +79,12 @@ namespace MiniFtpServer_WPF.Services
                             if (reader.Read())
                             {
                                 int id = reader.GetInt32(0);
-                                string name = reader["full_name"] is DBNull ? username : reader["full_name"].ToString();
-                                return new Tuple<int, string>(id, name);
+
+                                string fullName = reader["full_name"] is DBNull ? username : reader["full_name"].ToString();
+                                string email = reader["Email"] is DBNull ? "" : reader["Email"].ToString();
+                                string description = reader["Description"] is DBNull ? "" : reader["Description"].ToString();
+
+                                return new Tuple<int, string, string, string>(id, fullName, email, description);
                             }
                         }
                     }
@@ -90,8 +94,10 @@ namespace MiniFtpServer_WPF.Services
             {
                 MessageBox.Show($"Lỗi kiểm tra đăng nhập: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+
             return null;
         }
+
 
         // ==================== LẤY ROOT FOLDER ====================
         public int GetUserRootFolderId(int userId)
