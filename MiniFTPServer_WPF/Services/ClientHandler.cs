@@ -214,7 +214,7 @@ namespace MiniFtpServer_WPF.Services
                 foreach (var file in files)
                 {
                     // Format: FILE:id:name:size:deletedDate;
-                    sb.Append($"FILE:{file.Item1}:{file.Item2}:{file.Item3}:{file.Item4:yyyy-MM-dd HH:mm:ss};");
+                    sb.Append($"FILE|{file.Item1}|{file.Item2}|{file.Item3}|{file.Item4:yyyy-MM-dd HH:mm:ss};");
                 }
 
                 await writer.WriteLineAsync($"TRASH_LIST|{sb}");
