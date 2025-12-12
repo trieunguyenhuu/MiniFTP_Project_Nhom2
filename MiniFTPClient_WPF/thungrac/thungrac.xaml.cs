@@ -12,7 +12,7 @@ namespace MiniFTPClient_WPF.thungrac
     public class TrashItem
     {
         public bool IsSelected { get; set; }
-        public int FileId { get; set; }        // ← THÊM MỚI
+        public int FileId { get; set; }  
         public string FileName { get; set; } = string.Empty;
         public string OriginalPath { get; set; } = string.Empty;
         public DateTime DeletedDate { get; set; } = DateTime.Now;
