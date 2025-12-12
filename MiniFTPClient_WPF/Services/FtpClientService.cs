@@ -201,7 +201,22 @@ namespace MiniFTPClient_WPF.Services
             {
                 string data = resp.Substring(11);
                 var users = data.Split(';', StringSplitOptions.RemoveEmptyEntries);
-                list.AddRange(users);
+
+                foreach (var user in users)
+                {
+                    // Tách "1:Nguyễn Văn A" thành chỉ lấy "Nguyễn Văn A"
+                    var parts = user.Split(':');
+                    if (parts.Length > 1)
+                    {
+                        string fullName = parts[1];
+
+                        // ✅ CHỈ THÊM NẾU KHÔNG PHẢI LÀ NGƯỜI DÙNG HIỆN TẠI
+                        if (!string.Equals(fullName, CurrentFullName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            list.Add(fullName);
+                        }
+                    }
+                }
             }
             return list;
         }
