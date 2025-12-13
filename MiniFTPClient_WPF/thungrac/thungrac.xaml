@@ -197,15 +197,20 @@
                     </StackPanel>
                 </Button>
 
-                <DataGrid Style="{DynamicResource DataGridStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" RowStyle="{DynamicResource DataGridRowStyle1}" Grid.Row="2" x:Name="filedatagrid">
+                <DataGrid Style="{DynamicResource DataGridStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" RowStyle="{DynamicResource DataGridRowStyle1}" Grid.Row="2" 
+                          x:Name="filedatagrid" MouseLeftButtonUp="filedatagrid_MouseLeftButtonUp">
+                        
                     <DataGrid.Columns>
-                        <DataGridCheckBoxColumn CanUserResize="False" Width="auto" ElementStyle="{StaticResource CheckBoxStyle1}" Binding="{Binding IsSelected, Mode=TwoWay}">
-                            <DataGridCheckBoxColumn.HeaderTemplate>
-                                <DataTemplate>
-                                    <CheckBox Style="{StaticResource CheckBoxStyle1}"/>
-                                </DataTemplate>
-                            </DataGridCheckBoxColumn.HeaderTemplate>
+                        <DataGridCheckBoxColumn CanUserResize="False"
+                        Width="auto"
+                        Binding="{Binding IsSelected, Mode=TwoWay}">
+                            <DataGridCheckBoxColumn.Header>
+                                <CheckBox x:Name="SelectAllCheckBox"
+                                  Checked="SelectAllCheckBox_Checked"
+                                  Unchecked="SelectAllCheckBox_Unchecked"/>
+                            </DataGridCheckBoxColumn.Header>
                         </DataGridCheckBoxColumn>
+
 
                         <DataGridTemplateColumn Header="Tên file" IsReadOnly="True" Width="*">
                             <DataGridTemplateColumn.CellTemplate>

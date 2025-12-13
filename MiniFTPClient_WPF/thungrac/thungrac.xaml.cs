@@ -1,6 +1,7 @@
 ﻿using MiniFTPClient_WPF.Services;
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,15 +10,37 @@ using System.Windows.Media;
 namespace MiniFTPClient_WPF.thungrac
 {
 
-    public class TrashItem
+    using System.ComponentModel;
+    using System.Windows.Input;
+
+    public class TrashItem : INotifyPropertyChanged
     {
-        public bool IsSelected { get; set; }
-        public int FileId { get; set; }  
+        private bool _isSelected;
+
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                if (_isSelected != value)
+                {
+                    _isSelected = value;
+                    OnPropertyChanged(nameof(IsSelected));
+                }
+            }
+        }
+
+        public int FileId { get; set; }
         public string FileName { get; set; } = string.Empty;
         public string OriginalPath { get; set; } = string.Empty;
         public DateTime DeletedDate { get; set; } = DateTime.Now;
         public string Size { get; set; } = string.Empty;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+
 
     public partial class Thungrac : Page
     {
@@ -126,33 +149,100 @@ namespace MiniFTPClient_WPF.thungrac
         // Dọn dẹp thùng rác
         private async void BtnEmptyTrash_Click(object sender, RoutedEventArgs e)
         {
-            if (_items.Count == 0)
+            var selectedItems = _items.Where(i => i.IsSelected).ToList();
+
+            if (selectedItems.Count == 0)
             {
-                MessageBox.Show("Thùng rác đã trống!", "Thông báo");
+                MessageBox.Show("Vui lòng chọn file cần xóa.", "Thông báo");
                 return;
             }
 
             var result = MessageBox.Show(
-                $"XÓA VĨNH VIỄN TẤT CẢ {_items.Count} file?\nHành động này KHÔNG THỂ HOÀN TÁC!",
+                $"XÓA VĨNH VIỄN {selectedItems.Count} file đã chọn?\nHành động này KHÔNG THỂ HOÀN TÁC!",
                 "Cảnh báo nghiêm trọng",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 
-            if (result == MessageBoxResult.Yes)
-            {
-                bool ok = await FtpClientService.Instance.EmptyTrashAsync();
+            if (result != MessageBoxResult.Yes)
+                return;
 
-                if (ok)
-                {
-                    MessageBox.Show("Đã dọn dẹp thùng rác!", "Thành công");
-                    await LoadTrashData();
-                }
-                else
-                {
-                    MessageBox.Show("Dọn dẹp thất bại!", "Lỗi");
-                }
+            bool allOk = true;
+
+            foreach (var item in selectedItems)
+            {
+                bool ok = await FtpClientService.Instance.PermanentDeleteAsync(item.FileId);
+                if (!ok)
+                    allOk = false;
+            }
+
+            if (allOk)
+                MessageBox.Show("Đã xóa các file đã chọn!", "Thành công");
+            else
+                MessageBox.Show("Một số file không thể xóa!", "Lỗi");
+
+            await LoadTrashData();
+        }
+
+
+
+
+        // tick chọn tất cả 
+        private void SelectAllCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            foreach (var item in _items)
+            {
+                item.IsSelected = true;
+            }
+
+            //filedatagrid.Items.Refresh(); // Đảm bảo DataGrid vẽ lại
+        }
+
+        // huỷ tick chọn tất cả
+        private void SelectAllCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            foreach (var item in _items)
+            {
+                item.IsSelected = false;
+            }
+
+            //filedatagrid.Items.Refresh();
+        }
+
+        // hàm chọn khi tick vào file
+        private void filedatagrid_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            // Lấy vị trí chuột
+            var point = e.GetPosition(filedatagrid);
+
+            // Hit test để tìm phần tử dưới chuột
+            var hit = VisualTreeHelper.HitTest(filedatagrid, point);
+            if (hit == null) return;
+
+            // Tìm dòng tương ứng
+            var row = FindParent<DataGridRow>(hit.VisualHit);
+            if (row == null) return;
+
+            // Lấy item tương ứng
+            if (row.Item is TrashItem item)
+            {
+                item.IsSelected = !item.IsSelected;
             }
         }
+
+        // hàm để tìm dòng chứa file tương ứng khi click chọn
+        private T FindParent<T>(DependencyObject child) where T : DependencyObject
+        {
+            DependencyObject parent = VisualTreeHelper.GetParent(child);
+
+            while (parent != null && parent is not T)
+            {
+                parent = VisualTreeHelper.GetParent(parent);
+            }
+
+            return parent as T;
+        }
+
+
 
     }
 }
