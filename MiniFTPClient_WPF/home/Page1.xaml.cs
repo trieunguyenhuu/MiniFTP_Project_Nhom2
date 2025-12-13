@@ -25,7 +25,7 @@ namespace MiniFTPClient_WPF.home
         private readonly ObservableCollection<UserItem> _users = new ObservableCollection<UserItem>();
 
         private string _selectedFilePath = null;
-
+        private FileItem _selectedFileItem;
         public Page1()
         {
             InitializeComponent();
@@ -79,15 +79,21 @@ namespace MiniFTPClient_WPF.home
 
         private void FileListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Xử lý khi click vào item
-            // Nếu là Folder -> Đi vào trong (Navigate)
-            if (FileListBox.SelectedItem is FileItem item && item.IsFolder)
+            if (FileListBox.SelectedItem is FileItem item)
             {
-                var folderName = item.Name.TrimEnd('/');
-                NavigateInto(folderName);
-
-                // Reset selection để có thể click lại folder đó nếu muốn
-                FileListBox.SelectedItem = null;
+                // ✅ Nếu là folder → đi vào folder
+                if (item.IsFolder)
+                {
+                    NavigateInto(item.Name.TrimEnd('/'));
+                    FileListBox.SelectedItem = null; // reset để click lại được
+                }
+                else
+                {
+                    // ✅ Nếu là file → tự động chọn file
+                    _selectedFileItem = item;               // lưu file đang chọn
+                    TxtSelectedFile.Text = item.Name;       // hiển thị tên file
+                    UpdateShareButtonState();               // cập nhật nút Share
+                }
             }
         }
 
@@ -141,11 +147,22 @@ namespace MiniFTPClient_WPF.home
 
         private async void BtnShare_Click(object sender, RoutedEventArgs e)
         {
-            // Lấy danh sách tên user (string)
+            //  1. Kiểm tra đã chọn file chưa
+            var fileName = TxtSelectedFile.Text;
+
+            if (string.IsNullOrWhiteSpace(fileName) || fileName == "(Chưa chọn file)")
+            {
+                MessageBox.Show("Vui lòng chọn file trước khi chia sẻ.",
+                                "Chưa chọn file",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning);
+                return;
+            }
+
+            //  2. Lấy danh sách user từ server
             var realUsers = await FtpClientService.Instance.GetUsersAsync();
 
             _users.Clear();
-            // Duyệt qua từng tên và tạo UserItem
             foreach (var name in realUsers)
             {
                 _users.Add(new UserItem
@@ -155,13 +172,16 @@ namespace MiniFTPClient_WPF.home
                 });
             }
 
+            //  3. Hiện giao diện chia sẻ
             Overlay.Visibility = Visibility.Visible;
             Panel.SetZIndex(Overlay, 999);
             Panel.SetZIndex(SharePanel, 1000);
             SharePanel.Visibility = Visibility.Visible;
+
             RecipientList.Focus();
             UpdateShareButtonState();
         }
+
 
         private void CloseSharePanel_Click(object sender, RoutedEventArgs e)
         {
