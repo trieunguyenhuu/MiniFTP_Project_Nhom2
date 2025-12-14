@@ -371,5 +371,193 @@ namespace MiniFTPClient_WPF.Services
             }
             return $"{len:0.##} {sizes[order]}";
         }
+
+        //=========================share file======================
+        public async Task<string> ShareFileAsync(int fileId, string targetUserFullName, string accessLevel = "READ")
+        {
+            try
+            {
+                if (!IsConnected) return "Chưa kết nối server";
+
+                // 1. Lấy danh sách user để tìm user_id từ full_name
+                var users = await GetUsersAsync();
+
+                // GetUsersAsync() hiện tại trả về List<string> (chỉ có full_name)
+                // Ta cần sửa lại để lấy cả user_id
+                // Tạm thời gửi lệnh SHARE_FILE_BY_NAME để server tự tìm
+
+                await _writer.WriteLineAsync($"SHARE_FILE_BY_NAME|{fileId}|{targetUserFullName}|{accessLevel}");
+                string response = await _reader.ReadLineAsync();
+
+                if (response != null && response.StartsWith("SHARE_SUCCESS"))
+                {
+                    return "OK";
+                }
+                else if (response != null && response.StartsWith("ERROR"))
+                {
+                    return response.Split('|')[1];
+                }
+
+                return "Lỗi không xác định";
+            }
+            catch (Exception ex)
+            {
+                return $"Lỗi: {ex.Message}";
+            }
+        }
+
+        // ==================== LẤY DANH SÁCH USER (CẢI TIẾN) ====================
+        /// <summary>
+        /// Lấy danh sách user với cả ID và tên
+        /// </summary>
+        public async Task<List<Tuple<int, string>>> GetUsersWithIdAsync()
+        {
+            var list = new List<Tuple<int, string>>();
+            if (!IsConnected) return list;
+
+            await _writer.WriteLineAsync("GET_USERS");
+            string resp = await _reader.ReadLineAsync();
+
+            if (resp != null && resp.StartsWith("USERS_LIST"))
+            {
+                string data = resp.Substring(11);
+                var users = data.Split(';', StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var user in users)
+                {
+                    // Format từ server: "1:Nguyễn Văn A"
+                    var parts = user.Split(':');
+                    if (parts.Length > 1)
+                    {
+                        int userId = int.Parse(parts[0]);
+                        string fullName = parts[1];
+
+                        // Không thêm người dùng hiện tại
+                        if (!string.Equals(fullName, CurrentFullName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            list.Add(new Tuple<int, string>(userId, fullName));
+                        }
+                    }
+                }
+            }
+            return list;
+        }
+
+        // ==================== LẤY FILE ĐƯỢC SHARE ====================
+        /// <summary>
+        /// Lấy danh sách file mà người khác đã share cho mình
+        /// </summary>
+        public async Task<List<SharedFileItem>> GetSharedFilesAsync()
+        {
+            var list = new List<SharedFileItem>();
+            if (!IsConnected) return list;
+
+            try
+            {
+                await _writer.WriteLineAsync("GET_SHARED_FILES");
+                string resp = await _reader.ReadLineAsync();
+
+                if (resp != null && resp.StartsWith("SHARED_FILES_LIST"))
+                {
+                    string data = resp.Substring(18);
+                    if (!string.IsNullOrEmpty(data))
+                    {
+                        var items = data.Split(';', StringSplitOptions.RemoveEmptyEntries);
+
+                        foreach (var item in items)
+                        {
+                            // Format: id|name|size|access|owner;
+                            var parts = item.Split('|');
+                            if (parts.Length >= 5)
+                            {
+                                list.Add(new SharedFileItem
+                                {
+                                    FileId = int.Parse(parts[0]),
+                                    FileName = parts[1],
+                                    FileSize = long.Parse(parts[2]),
+                                    AccessLevel = parts[3],
+                                    OwnerName = parts[4]
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi lấy shared files: {ex.Message}");
+            }
+
+            return list;
+        }
+
+        // ==================== HỦY CHIA SẺ ====================
+        /// <summary>
+        /// Hủy chia sẻ file với user
+        /// </summary>
+        public async Task<bool> UnshareFileAsync(int fileId, int userId)
+        {
+            if (!IsConnected) return false;
+
+            try
+            {
+                await _writer.WriteLineAsync($"UNSHARE_FILE|{fileId}|{userId}");
+                string response = await _reader.ReadLineAsync();
+
+                return response != null && response.StartsWith("UNSHARE_SUCCESS");
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // ==================== KIỂM TRA QUYỀN ====================
+        /// <summary>
+        /// Kiểm tra quyền truy cập file
+        /// </summary>
+        public async Task<string> CheckFileAccessAsync(int fileId)
+        {
+            if (!IsConnected) return "NONE";
+
+            try
+            {
+                await _writer.WriteLineAsync($"CHECK_ACCESS|{fileId}");
+                string response = await _reader.ReadLineAsync();
+
+                if (response != null && response.StartsWith("ACCESS_LEVEL"))
+                {
+                    return response.Split('|')[1];
+                }
+            }
+            catch { }
+
+            return "NONE";
+        }
+
+        // ==================== CLASS MODELS ====================
+        public class SharedFileItem
+        {
+            public int FileId { get; set; }
+            public string FileName { get; set; }
+            public long FileSize { get; set; }
+            public string AccessLevel { get; set; }
+            public string OwnerName { get; set; }
+
+            public string FormattedSize => FormatFileSize(FileSize);
+
+            private string FormatFileSize(long bytes)
+            {
+                string[] sizes = { "B", "KB", "MB", "GB" };
+                double len = bytes;
+                int order = 0;
+                while (len >= 1024 && order < sizes.Length - 1)
+                {
+                    order++;
+                    len /= 1024;
+                }
+                return $"{len:0.##} {sizes[order]}";
+            }
+        }
     }
 }

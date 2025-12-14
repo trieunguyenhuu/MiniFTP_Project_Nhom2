@@ -34,6 +34,16 @@ namespace MiniFtpServer_WPF.Services
         public const string RESTORE_FILE = "RESTORE_FILE";
         public const string PERMANENT_DELETE = "PERMANENT_DELETE";
         public const string EMPTY_TRASH = "EMPTY_TRASH";
+
+        // share file
+        public const string SHARE_FILE = "SHARE_FILE";
+        public const string SHARE_SUCCESS = "SHARE_SUCCESS";
+        public const string GET_SHARED_FILES = "GET_SHARED_FILES";
+        public const string SHARED_FILES_LIST = "SHARED_FILES_LIST";
+        public const string GET_SHARED_WITH = "GET_SHARED_WITH";
+        public const string UNSHARE_FILE = "UNSHARE_FILE";
+        public const string CHECK_ACCESS = "CHECK_ACCESS";
+        public const string SHARE_FILE_BY_NAME = "SHARE_FILE_BY_NAME";
     }
 
     public class ClientHandler
@@ -161,6 +171,30 @@ namespace MiniFtpServer_WPF.Services
                             case FtpCommands.LOGOUT:
                                 _logAction($"→ User {_username} đã đăng xuất");
                                 return;
+
+                            case FtpCommands.SHARE_FILE:
+                                await HandleShareFile(parts, writer);
+                                break;
+
+                            case FtpCommands.GET_SHARED_FILES:
+                                await HandleGetSharedFiles(writer);
+                                break;
+
+                            case FtpCommands.GET_SHARED_WITH:
+                                await HandleGetSharedWith(parts, writer);
+                                break;
+
+                            case FtpCommands.UNSHARE_FILE:
+                                await HandleUnshare(parts, writer);
+                                break;
+
+                            case FtpCommands.CHECK_ACCESS:
+                                await HandleCheckAccess(parts, writer);
+                                break;
+
+                            case FtpCommands.SHARE_FILE_BY_NAME:
+                                await HandleShareFileByName(parts, writer);
+                                break;
 
                             default:
                                 await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lệnh không hợp lệ");
@@ -551,6 +585,225 @@ namespace MiniFtpServer_WPF.Services
             }
 
             return $"{len:0.##} {sizes[order]}";
+        }
+
+        // ======================share file=======================
+        private async Task HandleShareFile(string[] parts, StreamWriter writer)
+        {
+            try
+            {
+                if (parts.Length < 3)
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Thiếu thông tin chia sẻ");
+                    return;
+                }
+
+                int fileId = int.Parse(parts[1]);
+                int targetUserId = int.Parse(parts[2]);
+                string accessLevel = parts.Length > 3 ? parts[3] : "READ";
+
+                // Validate access level
+                if (accessLevel != "READ" && accessLevel != "WRITE")
+                {
+                    accessLevel = "READ";
+                }
+
+                // Không cho phép share với chính mình
+                if (targetUserId == _userId)
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Không thể chia sẻ với chính mình");
+                    return;
+                }
+
+                bool success = _dbService.ShareFile(fileId, _userId, targetUserId, accessLevel);
+
+                if (success)
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.SHARE_SUCCESS}|Chia sẻ thành công");
+                    _logAction($"📤 {_username} chia sẻ file ID:{fileId} với user ID:{targetUserId} ({accessLevel})");
+                }
+                else
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Không thể chia sẻ file");
+                }
+            }
+            catch (Exception ex)
+            {
+                await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi chia sẻ: {ex.Message}");
+                _logAction($"✗ Lỗi share file: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Lấy danh sách file được người khác share cho mình
+        /// </summary>
+        private async Task HandleGetSharedFiles(StreamWriter writer)
+        {
+            try
+            {
+                var files = _dbService.GetSharedFiles(_userId);
+                StringBuilder sb = new StringBuilder();
+
+                foreach (var file in files)
+                {
+                    // Format: id|name|size|access|owner;
+                    sb.Append($"{file.Item1}|{file.Item2}|{file.Item3}|{file.Item4}|{file.Item5};");
+                }
+
+                await writer.WriteLineAsync($"{FtpCommands.SHARED_FILES_LIST}|{sb}");
+                _logAction($"📥 {_username} xem file được chia sẻ");
+            }
+            catch (Exception ex)
+            {
+                await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Lấy danh sách user đã được share file này
+        /// Format: GET_SHARED_WITH|fileId
+        /// </summary>
+        private async Task HandleGetSharedWith(string[] parts, StreamWriter writer)
+        {
+            try
+            {
+                if (parts.Length < 2)
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Thiếu file ID");
+                    return;
+                }
+
+                int fileId = int.Parse(parts[1]);
+                var users = _dbService.GetSharedWithUsers(fileId);
+                StringBuilder sb = new StringBuilder();
+
+                foreach (var user in users)
+                {
+                    // Format: userId|fullName|accessLevel;
+                    sb.Append($"{user.Item1}|{user.Item2}|{user.Item3};");
+                }
+
+                await writer.WriteLineAsync($"SHARED_WITH_LIST|{sb}");
+            }
+            catch (Exception ex)
+            {
+                await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Hủy chia sẻ file
+        /// Format: UNSHARE_FILE|fileId|userId
+        /// </summary>
+        private async Task HandleUnshare(string[] parts, StreamWriter writer)
+        {
+            try
+            {
+                if (parts.Length < 3)
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Thiếu thông tin");
+                    return;
+                }
+
+                int fileId = int.Parse(parts[1]);
+                int targetUserId = int.Parse(parts[2]);
+
+                bool success = _dbService.UnshareFile(fileId, targetUserId);
+
+                if (success)
+                {
+                    await writer.WriteLineAsync("UNSHARE_SUCCESS|Đã hủy chia sẻ");
+                    _logAction($"🔒 {_username} hủy share file ID:{fileId} với user ID:{targetUserId}");
+                }
+                else
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Không thể hủy chia sẻ");
+                }
+            }
+            catch (Exception ex)
+            {
+                await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Kiểm tra quyền truy cập file
+        /// Format: CHECK_ACCESS|fileId
+        /// </summary>
+        private async Task HandleCheckAccess(string[] parts, StreamWriter writer)
+        {
+            try
+            {
+                if (parts.Length < 2)
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Thiếu file ID");
+                    return;
+                }
+
+                int fileId = int.Parse(parts[1]);
+                string access = _dbService.CheckFileAccess(fileId, _userId);
+
+                await writer.WriteLineAsync($"ACCESS_LEVEL|{access}");
+            }
+            catch (Exception ex)
+            {
+                await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi: {ex.Message}");
+            }
+        }
+
+        private async Task HandleShareFileByName(string[] parts, StreamWriter writer)
+        {
+            try
+            {
+                if (parts.Length < 3)
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Thiếu thông tin chia sẻ");
+                    return;
+                }
+
+                int fileId = int.Parse(parts[1]);
+                string targetFullName = parts[2];
+                string accessLevel = parts.Length > 3 ? parts[3] : "READ";
+
+                // Validate access level
+                if (accessLevel != "READ" && accessLevel != "WRITE")
+                {
+                    accessLevel = "READ";
+                }
+
+                // Tìm user_id từ full_name
+                int? targetUserId = _dbService.GetUserIdByFullName(targetFullName);
+
+                if (targetUserId == null)
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Không tìm thấy người dùng '{targetFullName}'");
+                    return;
+                }
+
+                // Không cho phép share với chính mình
+                if (targetUserId.Value == _userId)
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Không thể chia sẻ với chính mình");
+                    return;
+                }
+
+                bool success = _dbService.ShareFile(fileId, _userId, targetUserId.Value, accessLevel);
+
+                if (success)
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.SHARE_SUCCESS}|Đã chia sẻ với {targetFullName}");
+                    _logAction($"📤 {_username} chia sẻ file ID:{fileId} với {targetFullName} ({accessLevel})");
+                }
+                else
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Không thể chia sẻ file");
+                }
+            }
+            catch (Exception ex)
+            {
+                await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi chia sẻ: {ex.Message}");
+                _logAction($"✗ Lỗi share file by name: {ex.Message}");
+            }
         }
     }
 }

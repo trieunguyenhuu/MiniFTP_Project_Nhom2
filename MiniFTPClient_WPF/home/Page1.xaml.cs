@@ -1,6 +1,9 @@
 ﻿using Microsoft.Win32;
+using MiniFTPClient_WPF.Models;
+using MiniFTPClient_WPF.Services;
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -9,9 +12,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-
-using MiniFTPClient_WPF.Models;
-using MiniFTPClient_WPF.Services;
 
 namespace MiniFTPClient_WPF.home
 {
@@ -134,10 +134,30 @@ namespace MiniFTPClient_WPF.home
         // USER MODEL & SAMPLE DATA (Giữ nguyên cho giao diện Share)
         // =========================================================
 
-        public class UserItem
+        public class UserItem : INotifyPropertyChanged
         {
+            private bool _isSelected;
+
+            public int UserId { get; set; }
             public string Name { get; set; } = "";
             public string AvatarPath { get; set; } = "";
+
+            public bool IsSelected
+            {
+                get => _isSelected;
+                set
+                {
+                    if (_isSelected != value)
+                    {
+                        _isSelected = value;
+                        OnPropertyChanged(nameof(IsSelected));
+                    }
+                }
+            }
+
+            public event PropertyChangedEventHandler PropertyChanged;
+            protected void OnPropertyChanged(string propertyName) =>
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
 
@@ -147,40 +167,52 @@ namespace MiniFTPClient_WPF.home
 
         private async void BtnShare_Click(object sender, RoutedEventArgs e)
         {
-            //  1. Kiểm tra đã chọn file chưa
-            var fileName = TxtSelectedFile.Text;
-
-            if (string.IsNullOrWhiteSpace(fileName) || fileName == "(Chưa chọn file)")
+            // 1. Kiểm tra đã chọn file chưa
+            if (_selectedFileItem == null || _selectedFileItem.IsFolder)
             {
-                MessageBox.Show("Vui lòng chọn file trước khi chia sẻ.",
+                MessageBox.Show("Vui lòng chọn một file (không phải thư mục) để chia sẻ.",
                                 "Chưa chọn file",
                                 MessageBoxButton.OK,
                                 MessageBoxImage.Warning);
                 return;
             }
 
-            //  2. Lấy danh sách user từ server
-            var realUsers = await FtpClientService.Instance.GetUsersAsync();
-
-            _users.Clear();
-            foreach (var name in realUsers)
+            try
             {
-                _users.Add(new UserItem
+                // 2. Lấy danh sách user (bao gồm cả user_id)
+                var realUsers = await FtpClientService.Instance.GetUsersWithIdAsync();
+
+                _users.Clear();
+                foreach (var (userId, fullName) in realUsers)
                 {
-                    Name = name,
-                    AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
-                });
+                    _users.Add(new UserItem
+                    {
+                        UserId = userId,
+                        Name = fullName,
+                        AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg",
+                        IsSelected = false // ✅ Mặc định KHÔNG chọn
+                    });
+                }
+
+                // 3. Cập nhật file đã chọn
+                TxtSelectedFile.Text = _selectedFileItem.Name;
+
+                // 4. Hiện panel
+                Overlay.Visibility = Visibility.Visible;
+                Panel.SetZIndex(Overlay, 999);
+                Panel.SetZIndex(SharePanel, 1000);
+                SharePanel.Visibility = Visibility.Visible;
+
+                // 5. Reset trạng thái nút
+                UpdateShareButtonState();
             }
-
-            //  3. Hiện giao diện chia sẻ
-            Overlay.Visibility = Visibility.Visible;
-            Panel.SetZIndex(Overlay, 999);
-            Panel.SetZIndex(SharePanel, 1000);
-            SharePanel.Visibility = Visibility.Visible;
-
-            RecipientList.Focus();
-            UpdateShareButtonState();
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi tải danh sách người dùng: {ex.Message}",
+                    "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
+
 
 
         private void CloseSharePanel_Click(object sender, RoutedEventArgs e)
@@ -190,11 +222,19 @@ namespace MiniFTPClient_WPF.home
             Panel.SetZIndex(SharePanel, 0);
             Panel.SetZIndex(Overlay, 0);
 
+            // Reset state
             _selectedFilePath = null;
             TxtSelectedFile.Text = "(Chưa chọn file)";
             BtnDoShare.IsEnabled = false;
-            RecipientList.SelectedItem = null;
+            BtnDoShare.Content = "Chia sẻ";
+
+            // ✅ BỎ CHỌN TẤT CẢ USER
+            foreach (var user in _users)
+            {
+                user.IsSelected = false;
+            }
         }
+
 
         private void Overlay_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -206,31 +246,112 @@ namespace MiniFTPClient_WPF.home
             UpdateShareButtonState();
         }
 
-        private void UpdateShareButtonState()
+        private void RecipientCheckBox_Changed(object sender, RoutedEventArgs e)
         {
-            bool hasRecipient = RecipientList.SelectedItem != null;
-            bool hasFile = !string.IsNullOrWhiteSpace(TxtSelectedFile.Text) && TxtSelectedFile.Text != "(Chưa chọn file)";
-            BtnDoShare.IsEnabled = hasRecipient && hasFile;
+            UpdateShareButtonState();
         }
 
-        private void BtnDoShare_Click(object sender, RoutedEventArgs e)
+        private void UpdateShareButtonState()
         {
-            if (RecipientList.SelectedItem is not UserItem user)
-            {
-                MessageBox.Show("Vui lòng chọn người nhận.");
-                return;
-            }
+            // Đếm số user được chọn
+            int selectedCount = _users.Count(u => u.IsSelected);
 
-            var fileName = TxtSelectedFile.Text;
-            if (string.IsNullOrWhiteSpace(fileName) || fileName == "(Chưa chọn file)")
-            {
-                MessageBox.Show("Vui lòng chọn file để chia sẻ.");
-                return;
-            }
+            bool hasFile = !string.IsNullOrWhiteSpace(TxtSelectedFile.Text)
+                           && TxtSelectedFile.Text != "(Chưa chọn file)";
 
-            // Gọi logic chia sẻ thật ở đây (nếu có tính năng chia sẻ trong DB Server)
-            MessageBox.Show($"Đã gửi yêu cầu chia sẻ file: {fileName}\nĐến: {user.Name}", "Chia sẻ thành công", MessageBoxButton.OK, MessageBoxImage.Information);
-            CloseSharePanel_Click(sender, e);
+            BtnDoShare.IsEnabled = selectedCount > 0 && hasFile;
+
+            // Cập nhật text nút
+            if (selectedCount > 0)
+            {
+                BtnDoShare.Content = $"Chia sẻ ({selectedCount})";
+            }
+            else
+            {
+                BtnDoShare.Content = "Chia sẻ";
+            }
+        }
+
+        private async void BtnDoShare_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Lấy danh sách user đã chọn (hỗ trợ multi-select)
+                var selectedUsers = _users.Where(u => u.IsSelected).ToList();
+
+                if (selectedUsers.Count == 0)
+                {
+                    MessageBox.Show("Vui lòng chọn ít nhất một người nhận.", "Thông báo",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (_selectedFileItem == null)
+                {
+                    MessageBox.Show("Chưa chọn file để chia sẻ.", "Lỗi",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Vô hiệu hóa nút để tránh spam click
+                BtnDoShare.IsEnabled = false;
+                BtnDoShare.Content = "Đang chia sẻ...";
+
+                int successCount = 0;
+                int failCount = 0;
+
+                foreach (var user in selectedUsers)
+                {
+                    // Gọi API share file (mặc định quyền READ)
+                    string result = await FtpClientService.Instance.ShareFileAsync(
+                        _selectedFileItem.Id,
+                        user.Name,
+                        "READ"
+                    );
+
+                    if (result == "OK")
+                    {
+                        successCount++;
+                    }
+                    else
+                    {
+                        failCount++;
+                    }
+                }
+
+                // Hiển thị kết quả
+                if (failCount == 0)
+                {
+                    MessageBox.Show(
+                        $"✓ Đã chia sẻ thành công '{_selectedFileItem.Name}' với {successCount} người!",
+                        "Chia sẻ thành công",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
+                else
+                {
+                    MessageBox.Show(
+                        $"Kết quả:\n• Thành công: {successCount}\n• Thất bại: {failCount}",
+                        "Chia sẻ hoàn tất",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning
+                    );
+                }
+
+                // Đóng panel
+                CloseSharePanel_Click(sender, e);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi chia sẻ: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                BtnDoShare.IsEnabled = true;
+                BtnDoShare.Content = "Chia sẻ";
+            }
         }
 
         private void ShowShareFor(FileItem file)

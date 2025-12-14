@@ -530,5 +530,292 @@ namespace MiniFtpServer_WPF.Services
                 return false;
             }
         }
+
+        //================================chia sẻ file==========================================
+        public bool ShareFile(int fileId, int ownerId, int sharedWithUserId, string accessLevel = "READ")
+        {
+            try
+            {
+                using (var conn = new SQLiteConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // 1. Kiểm tra file có tồn tại và thuộc về owner không
+                    string checkSql = "SELECT owner_user_id FROM Files WHERE file_id = @fid";
+                    using (var cmd = new SQLiteCommand(checkSql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@fid", fileId);
+                        var result = cmd.ExecuteScalar();
+
+                        if (result == null || Convert.ToInt32(result) != ownerId)
+                        {
+                            return false; // File không tồn tại hoặc không phải owner
+                        }
+                    }
+
+                    // 2. Kiểm tra đã share cho user này chưa
+                    string checkExistSql = @"SELECT perm_id FROM Permissions 
+                                    WHERE file_id = @fid AND shared_with_user_id = @uid";
+
+                    using (var cmd = new SQLiteCommand(checkExistSql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@fid", fileId);
+                        cmd.Parameters.AddWithValue("@uid", sharedWithUserId);
+
+                        var existingPerm = cmd.ExecuteScalar();
+
+                        if (existingPerm != null)
+                        {
+                            // Đã share rồi → Update access level
+                            string updateSql = @"UPDATE Permissions 
+                                        SET access_level = @level 
+                                        WHERE perm_id = @pid";
+
+                            using (var updateCmd = new SQLiteCommand(updateSql, conn))
+                            {
+                                updateCmd.Parameters.AddWithValue("@level", accessLevel);
+                                updateCmd.Parameters.AddWithValue("@pid", existingPerm);
+                                updateCmd.ExecuteNonQuery();
+                            }
+                        }
+                        else
+                        {
+                            // Chưa share → Insert mới
+                            string insertSql = @"INSERT INTO Permissions 
+                                        (file_id, shared_with_user_id, access_level) 
+                                        VALUES (@fid, @uid, @level)";
+
+                            using (var insertCmd = new SQLiteCommand(insertSql, conn))
+                            {
+                                insertCmd.Parameters.AddWithValue("@fid", fileId);
+                                insertCmd.Parameters.AddWithValue("@uid", sharedWithUserId);
+                                insertCmd.Parameters.AddWithValue("@level", accessLevel);
+                                insertCmd.ExecuteNonQuery();
+                            }
+                        }
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi chia sẻ file: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        // ==================== LẤY DANH SÁCH FILE ĐƯỢC CHIA SẺ ====================
+        /// <summary>
+        /// Lấy danh sách file mà user này được người khác share
+        /// </summary>
+        public List<Tuple<int, string, long, string, string>> GetSharedFiles(int userId)
+        {
+            var list = new List<Tuple<int, string, long, string, string>>();
+
+            try
+            {
+                using (var conn = new SQLiteConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    string sql = @"
+                SELECT 
+                    f.file_id,
+                    f.file_name,
+                    f.file_size,
+                    p.access_level,
+                    u.full_name as owner_name
+                FROM Permissions p
+                JOIN Files f ON p.file_id = f.file_id
+                JOIN Users u ON f.owner_user_id = u.user_id
+                WHERE p.shared_with_user_id = @uid 
+                    AND f.is_deleted = 0
+                ORDER BY f.created_at DESC";
+
+                    using (var cmd = new SQLiteCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@uid", userId);
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                int id = reader.GetInt32(0);
+                                string name = reader.GetString(1);
+                                long size = reader.GetInt64(2);
+                                string access = reader.GetString(3);
+                                string owner = reader.GetString(4);
+
+                                list.Add(new Tuple<int, string, long, string, string>(
+                                    id, name, size, access, owner));
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi lấy file được chia sẻ: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            return list;
+        }
+
+        // ==================== HỦY CHIA SẺ ====================
+        /// <summary>
+        /// Hủy chia sẻ file với user
+        /// </summary>
+        public bool UnshareFile(int fileId, int sharedWithUserId)
+        {
+            try
+            {
+                using (var conn = new SQLiteConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    string sql = @"DELETE FROM Permissions 
+                          WHERE file_id = @fid AND shared_with_user_id = @uid";
+
+                    using (var cmd = new SQLiteCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@fid", fileId);
+                        cmd.Parameters.AddWithValue("@uid", sharedWithUserId);
+
+                        return cmd.ExecuteNonQuery() > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi hủy chia sẻ: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        // ==================== KIỂM TRA QUYỀN TRUY CẬP ====================
+        /// <summary>
+        /// Kiểm tra user có quyền truy cập file không
+        /// </summary>
+        public string CheckFileAccess(int fileId, int userId)
+        {
+            try
+            {
+                using (var conn = new SQLiteConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // 1. Kiểm tra là owner không
+                    string ownerSql = "SELECT owner_user_id FROM Files WHERE file_id = @fid";
+                    using (var cmd = new SQLiteCommand(ownerSql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@fid", fileId);
+                        var ownerId = cmd.ExecuteScalar();
+
+                        if (ownerId != null && Convert.ToInt32(ownerId) == userId)
+                        {
+                            return "OWNER"; // Là chủ sở hữu
+                        }
+                    }
+
+                    // 2. Kiểm tra trong bảng Permissions
+                    string permSql = @"SELECT access_level FROM Permissions 
+                              WHERE file_id = @fid AND shared_with_user_id = @uid";
+
+                    using (var cmd = new SQLiteCommand(permSql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@fid", fileId);
+                        cmd.Parameters.AddWithValue("@uid", userId);
+
+                        var result = cmd.ExecuteScalar();
+                        return result?.ToString() ?? "NONE";
+                    }
+                }
+            }
+            catch
+            {
+                return "NONE";
+            }
+        }
+
+        // ==================== LẤY DANH SÁCH USER ĐÃ SHARE ====================
+        /// <summary>
+        /// Lấy danh sách user đã được share file này
+        /// </summary>
+        public List<Tuple<int, string, string>> GetSharedWithUsers(int fileId)
+        {
+            var list = new List<Tuple<int, string, string>>();
+
+            try
+            {
+                using (var conn = new SQLiteConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    string sql = @"
+                SELECT 
+                    u.user_id,
+                    u.full_name,
+                    p.access_level
+                FROM Permissions p
+                JOIN Users u ON p.shared_with_user_id = u.user_id
+                WHERE p.file_id = @fid";
+
+                    using (var cmd = new SQLiteCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@fid", fileId);
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                int userId = reader.GetInt32(0);
+                                string fullName = reader.GetString(1);
+                                string access = reader.GetString(2);
+
+                                list.Add(new Tuple<int, string, string>(userId, fullName, access));
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi lấy danh sách: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            return list;
+        }
+
+        public int? GetUserIdByFullName(string fullName)
+        {
+            try
+            {
+                using (var conn = new SQLiteConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    string sql = "SELECT user_id FROM Users WHERE full_name = @name COLLATE NOCASE";
+
+                    using (var cmd = new SQLiteCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@name", fullName);
+
+                        var result = cmd.ExecuteScalar();
+                        return result != null ? Convert.ToInt32(result) : (int?)null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi tìm user: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return null;
+            }
+        }
     }
 }
