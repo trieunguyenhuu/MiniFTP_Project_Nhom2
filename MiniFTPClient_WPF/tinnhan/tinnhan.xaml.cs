@@ -164,7 +164,76 @@ namespace MiniFTPClient_WPF.tinnhan
         }
         private async void Btn_Download_Shared_Click(object sender, RoutedEventArgs e)
         {
-            //await FtpClientService.Instance.DownloadFileAsync(item.Id, dlg.FileName, item.SizeBytes);
+            // 1. Lấy thông tin file từ DataContext
+            if (sender is not Button btn || btn.DataContext is not MessageItem msg)
+            {
+                MessageBox.Show("Không thể xác định file cần tải.", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            try
+            {
+                // 2. Mở hộp thoại chọn nơi lưu file
+                var saveDialog = new Microsoft.Win32.SaveFileDialog
+                {
+                    FileName = msg.FileName,
+                    DefaultExt = System.IO.Path.GetExtension(msg.FileName),
+                    Filter = $"File {System.IO.Path.GetExtension(msg.FileName)}|*{System.IO.Path.GetExtension(msg.FileName)}|Tất cả file (*.*)|*.*",
+                    Title = "Chọn nơi lưu file"
+                };
+
+                if (saveDialog.ShowDialog() != true)
+                {
+                    return; // User hủy
+                }
+
+                // 3. Vô hiệu hóa nút để tránh spam click
+                btn.IsEnabled = false;
+                btn.Content = "Đang tải...";
+
+                // 4. Gọi Service tải file
+                bool success = await FtpClientService.Instance.DownloadFileAsync1(
+                    msg.FileId,
+                    saveDialog.FileName,
+                    msg.SizeInBytes
+                );
+
+                // 5. Hiển thị kết quả
+                if (success)
+                {
+                    MessageBox.Show(
+                        $"✓ Đã tải xuống thành công!\n\nVị trí: {saveDialog.FileName}",
+                        "Tải xuống thành công",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
+                else
+                {
+                    MessageBox.Show(
+                        "Không thể tải file. Vui lòng kiểm tra kết nối và thử lại.",
+                        "Lỗi tải xuống",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Lỗi khi tải file: {ex.Message}",
+                    "Lỗi",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+            finally
+            {
+                // 6. Bật lại nút
+                btn.IsEnabled = true;
+                btn.Content = "Tải về";
+            }
         }
         private async void Btn_Accept_Click(object sender, RoutedEventArgs e)
         {
