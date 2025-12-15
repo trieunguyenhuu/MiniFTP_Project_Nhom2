@@ -198,6 +198,44 @@ namespace MiniFTPClient_WPF.Services
             catch { return false; }
         }
 
+        public async Task<bool> DownloadFileAsync1(int fileId, string savePath, long fileSize)
+        {
+            if (!IsConnected) return false;
+
+            try
+            {
+                await _writer.WriteLineAsync($"DOWNLOAD|{fileId}");
+                await _writer.FlushAsync();
+
+                using (var fs = new FileStream(savePath, FileMode.Create))
+                {
+                    byte[] buffer = new byte[8192];
+                    long totalRead = 0;
+
+                    while (totalRead < fileSize)
+                    {
+                        int read = await _stream.ReadAsync(
+                            buffer, 0,
+                            (int)Math.Min(buffer.Length, fileSize - totalRead)
+                        );
+
+                        if (read <= 0) break;
+
+                        await fs.WriteAsync(buffer, 0, read);
+                        totalRead += read;
+                    }
+
+                    // ✔ kiểm tra đã đọc đủ file chưa
+                    return totalRead == fileSize;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+
         // 5. DELETE FILE
         public async Task<bool> DeleteFileAsync(int fileId)
         {
