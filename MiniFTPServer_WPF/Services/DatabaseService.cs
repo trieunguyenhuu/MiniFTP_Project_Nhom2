@@ -471,6 +471,51 @@ namespace MiniFtpServer_WPF.Services
             }
         }
 
+        // Lấy ID thư mục con dựa vào tên và thư mục cha hiện tại
+        public int? GetFolderIdByName(int userId, int parentId, string folderName)
+        {
+            try
+            {
+                using (var conn = new SQLiteConnection(_connectionString))
+                {
+                    conn.Open();
+                    // is_folder = 1 và is_deleted = 0
+                    string sql = "SELECT file_id FROM Files WHERE owner_user_id = @uid AND parent_id = @pid AND file_name = @name AND is_folder = 1 AND is_deleted = 0";
+                    using (var cmd = new SQLiteCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@uid", userId);
+                        cmd.Parameters.AddWithValue("@pid", parentId);
+                        cmd.Parameters.AddWithValue("@name", folderName.TrimEnd('/')); // Bỏ dấu / nếu có
+                        var result = cmd.ExecuteScalar();
+                        if (result != null) return Convert.ToInt32(result);
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        // Lấy ID thư mục cha (để Back lại)
+        public int? GetParentId(int currentFolderId)
+        {
+            try
+            {
+                using (var conn = new SQLiteConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = "SELECT parent_id FROM Files WHERE file_id = @fid";
+                    using (var cmd = new SQLiteCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@fid", currentFolderId);
+                        var result = cmd.ExecuteScalar();
+                        if (result != null && result != DBNull.Value) return Convert.ToInt32(result);
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
         // ==================== KIỂM TRA MẬT KHẨU ====================
         public bool VerifyPassword(int userId, string password)
         {
