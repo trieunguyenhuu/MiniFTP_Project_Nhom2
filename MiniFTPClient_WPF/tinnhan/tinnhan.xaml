@@ -629,6 +629,7 @@
                                                 Margin="8,0,0,0"/>
                                         <Button Style="{StaticResource DeclineButton}"
                                                 Content="Từ chối"
+                                                Click="BtnDecline_Click"
                                                 Width="100"
                                                 Margin="8,0,0,0"/>
                                     </StackPanel>

@@ -6,11 +6,13 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using MiniFTPClient_WPF.Services;
 
 namespace MiniFTPClient_WPF.tinnhan
 {
     public class MessageItem
     {
+        public int FileId { get; set; }
         public long SizeInBytes { get; set; }  // Để sắp xếp theo dung lượng
         public bool IsRead { get; set; }       // Đánh dấu đã đọc
         public string Sender { get; set; }
@@ -45,9 +47,56 @@ namespace MiniFTPClient_WPF.tinnhan
         public Tinnhan()
         {
             InitializeComponent();
-            LoadDummyData();
+            //LoadDummyData();
+            _ = LoadRealData();
             BindData();
             SetupFilters();
+        }
+
+        private async Task LoadRealData()
+        {
+            if (!FtpClientService.Instance.IsConnected) return;
+
+            // --- PHẦN 1: TIN ĐÃ NHẬN (RECEIVED) ---
+            _receivedMessages.Clear();
+            var sharedFiles = await FtpClientService.Instance.GetSharedFilesAsync();
+
+            foreach (var file in sharedFiles)
+            {
+                _receivedMessages.Add(new MessageItem
+                {
+                    FileId = file.FileId,
+                    Sender = file.OwnerName, // Người gửi
+                    FileName = file.FileName,
+                    Size = file.FormattedSize,
+                    SizeInBytes = file.FileSize,
+                    Time = "Mới đây",
+                    Date = DateTime.Now,
+                    IsReceived = true,
+                    AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
+                });
+            }
+
+            // --- PHẦN 2: TIN ĐÃ GỬI (SENT) - THÊM MỚI ---
+            _sentMessages.Clear();
+            var sentFiles = await FtpClientService.Instance.GetSentFilesAsync();
+
+            foreach (var file in sentFiles)
+            {
+                _sentMessages.Add(new MessageItem
+                {
+                    // Với tin đã gửi, trường Sender ta sẽ hiển thị Tên người nhận 
+                    // để giao diện hiện: "Nguyễn Văn A" -> "bạn đã gửi 1 file"
+                    Sender = file.OwnerName, // Ở bước 3 ta đã map ReceiverName vào biến OwnerName
+                    FileName = file.FileName,
+                    Size = file.FormattedSize,
+                    SizeInBytes = file.FileSize,
+                    Time = "Mới đây",
+                    Date = DateTime.Now,
+                    IsReceived = false, // Đánh dấu là tin gửi đi
+                    AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
+                });
+            }
         }
 
         private void SetupFilters()
@@ -55,6 +104,42 @@ namespace MiniFTPClient_WPF.tinnhan
             CbReceiveDateFilter.SelectionChanged += FilterReceived_Changed;
             CbSenderFilter.SelectionChanged += FilterReceived_Changed;
         }
+
+        // Trong Tinnhan.xaml.cs
+
+        private async void BtnDecline_Click(object sender, RoutedEventArgs e)
+        {
+            // 1. Lấy thông tin dòng đang chọn
+            if (sender is Button btn && btn.DataContext is MessageItem msg)
+            {
+                var result = MessageBox.Show($"Bạn có chắc muốn từ chối nhận file '{msg.FileName}' không?",
+                    "Xác nhận từ chối", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    // 2. Gọi Server hủy share
+                    // UnshareFileAsync(FileID, UserID_Của_Mình) -> Tự xóa mình khỏi danh sách được share
+                    bool ok = await FtpClientService.Instance.UnshareFileAsync(
+                        msg.FileId,
+                        FtpClientService.Instance.CurrentUserId
+                    );
+
+                    if (ok)
+                    {
+                        // 3. Xóa khỏi giao diện
+                        _receivedMessages.Remove(msg);
+
+                        MessageBox.Show("Đã từ chối file thành công. File đã bị xóa khỏi danh sách của bạn.",
+                            "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Lỗi: Không thể từ chối file này.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
         private void LoadDummyData()
         {
             // Tin đã nhận
