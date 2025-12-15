@@ -44,6 +44,9 @@ namespace MiniFtpServer_WPF.Services
         public const string UNSHARE_FILE = "UNSHARE_FILE";
         public const string CHECK_ACCESS = "CHECK_ACCESS";
         public const string SHARE_FILE_BY_NAME = "SHARE_FILE_BY_NAME";
+
+        public const string CWD = "CWD"; // thay đổi thư mục làm việc
+        public const string CWD_SUCCESS = "CWD_SUCCESS";
     }
 
     public class ClientHandler
@@ -194,6 +197,10 @@ namespace MiniFtpServer_WPF.Services
 
                             case FtpCommands.SHARE_FILE_BY_NAME:
                                 await HandleShareFileByName(parts, writer);
+                                break;
+
+                            case FtpCommands.CWD:
+                                await HandleCwd(parts, writer);
                                 break;
 
                             default:
@@ -805,5 +812,55 @@ namespace MiniFtpServer_WPF.Services
                 _logAction($"✗ Lỗi share file by name: {ex.Message}");
             }
         }
+
+        private async Task HandleCwd(string[] parts, StreamWriter writer)
+        {
+            try
+            {
+                if (parts.Length < 2)
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Thiếu tên thư mục");
+                    return;
+                }
+
+                string target = parts[1];
+
+                // Trường hợp 1: Quay lại thư mục cha ("..")
+                if (target == "..")
+                {
+                    int? parentId = _dbService.GetParentId(_currentFolderId);
+                    if (parentId != null)
+                    {
+                        _currentFolderId = parentId.Value;
+                        await writer.WriteLineAsync($"{FtpCommands.CWD_SUCCESS}|Đã quay lại");
+                    }
+                    else
+                    {
+                        // Nếu parentId là null, tức là đang ở Root, không lùi được nữa (hoặc giữ nguyên Root)
+                        // Logic tùy chọn: Giữ nguyên hoặc báo lỗi. Ở đây ta giữ nguyên.
+                        await writer.WriteLineAsync($"{FtpCommands.CWD_SUCCESS}|Đang ở thư mục gốc");
+                    }
+                }
+                // Trường hợp 2: Đi vào thư mục con
+                else
+                {
+                    int? newFolderId = _dbService.GetFolderIdByName(_userId, _currentFolderId, target);
+                    if (newFolderId != null)
+                    {
+                        _currentFolderId = newFolderId.Value;
+                        await writer.WriteLineAsync($"{FtpCommands.CWD_SUCCESS}|Đã chuyển thư mục");
+                    }
+                    else
+                    {
+                        await writer.WriteLineAsync($"{FtpCommands.ERROR}|Thư mục không tồn tại");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi chuyển thư mục: {ex.Message}");
+            }
+        }
+
     }
 }
