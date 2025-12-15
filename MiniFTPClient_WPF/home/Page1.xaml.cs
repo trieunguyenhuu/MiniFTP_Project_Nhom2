@@ -110,7 +110,7 @@ namespace MiniFTPClient_WPF.home
             }
         }
 
-        private void NavigateInto(string folderName)
+        private async void NavigateInto(string folderName)
         {
             // Thêm vào đường dẫn
             Breadcrumbs.Add(folderName);
@@ -118,15 +118,47 @@ namespace MiniFTPClient_WPF.home
             // TODO: Ở các bước sau, bạn cần bổ sung hàm "ChangeDirectory" vào FtpClientService 
             // để Server thực sự chuyển thư mục. Hiện tại ta cứ gọi Refresh list.
             _ = LoadFilesFromServer();
+            // 1. Gọi Server chuyển thư mục hiện tại
+            bool ok = await FtpClientService.Instance.ChangeDirectoryAsync(folderName);
+
+            if (ok)
+            {
+                // 2. Cập nhật UI Breadcrumbs
+                Breadcrumbs.Add(folderName);
+
+                // 3. Tải lại danh sách (Lúc này server đã ở folder mới nên sẽ trả về list mới)
+                _ = LoadFilesFromServer();
+            }
+            else
+            {
+                MessageBox.Show("Không thể mở thư mục này.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
-        private void NavigateToBreadcrumb(int index)
+        private async void NavigateToBreadcrumb(int index)
         {
-            // Xóa các breadcrumb phía sau
-            while (Breadcrumbs.Count - 1 > index)
-                Breadcrumbs.RemoveAt(Breadcrumbs.Count - 1);
+            // Logic: Breadcrumbs đang là [Home, A, B, C]. 
+            // Click vào A (index 1). Cần back 2 lần (C->B, B->A).
+            // Số lần back = (Tổng số phần tử - 1) - index đích
 
-            // Reload lại list (Đúng ra là phải gửi lệnh "CD .." hoặc đường dẫn tuyệt đối)
+            int stepsBack = (Breadcrumbs.Count - 1) - index;
+            if (stepsBack <= 0) return;
+
+            bool allOk = true;
+            for (int i = 0; i < stepsBack; i++)
+            {
+                // Gửi lệnh ".." để server lùi lại 1 cấp
+                bool ok = await FtpClientService.Instance.ChangeDirectoryAsync("..");
+                if (!ok) allOk = false;
+            }
+
+            // Cập nhật UI Breadcrumbs (xóa các phần tử phía sau)
+            while (Breadcrumbs.Count - 1 > index)
+            {
+                Breadcrumbs.RemoveAt(Breadcrumbs.Count - 1);
+            }
+
+            // Tải lại danh sách
             _ = LoadFilesFromServer();
         }
 

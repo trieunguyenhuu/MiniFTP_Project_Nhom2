@@ -559,5 +559,13 @@ namespace MiniFTPClient_WPF.Services
                 return $"{len:0.##} {sizes[order]}";
             }
         }
+
+        // Chuyển thư mục
+        public async Task<bool> ChangeDirectoryAsync(string folderName)
+        {
+            // folderName có thể là tên thư mục con hoặc ".."
+            string result = await SendCommandAsync($"CWD|{folderName}");
+            return result != null && result.StartsWith("CWD_SUCCESS");
+        }
     }
 }

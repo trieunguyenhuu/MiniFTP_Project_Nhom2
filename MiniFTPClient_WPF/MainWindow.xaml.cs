@@ -65,6 +65,11 @@ namespace MiniFTPClient_WPF
 
             LoadNotifications();
             UpdateNotificationBadge();
+            // Tự động quét thông báo mỗi 10 giây
+            System.Windows.Threading.DispatcherTimer timer = new System.Windows.Threading.DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(10);
+            timer.Tick += (s, e) => LoadNotifications();
+            timer.Start();
 
             // Đăng ký sự kiện khi bấm nút X
             this.Closing += MainWindow_Closing;
@@ -111,29 +116,39 @@ namespace MiniFTPClient_WPF
             this.Close();
         }
 
-        // THÊM 6 HÀM NÀY VÀO CUỐI CLASS MainWindow (trước dấu } cuối)
-
-        private void LoadNotifications()
+        private async void LoadNotifications()
         {
-            _notifications.Add(new NotificationItem
-            {
-                Title = "File mới từ admin",
-                Message = "Project_Report.pdf (2.5 MB)",
-                Time = "2 phút trước",
-                Timestamp = DateTime.Now.AddMinutes(-2),
-                IsRead = false
-            });
+            _notifications.Clear();
 
-            _notifications.Add(new NotificationItem
+            try
             {
-                Title = "File mới từ john_doe",
-                Message = "Marketing_Plan.pdf (4.8 MB)",
-                Time = "1 giờ trước",
-                Timestamp = DateTime.Now.AddHours(-1),
-                IsRead = false
-            });
+                // Kiểm tra kết nối
+                if (!FtpClientService.Instance.IsConnected) return;
 
-            NotificationList.ItemsSource = _notifications;
+                // 1. Lấy danh sách file được share từ Server
+                var sharedFiles = await FtpClientService.Instance.GetSharedFilesAsync();
+
+                // 2. Chuyển đổi sang NotificationItem
+                foreach (var file in sharedFiles)
+                {
+                    _notifications.Add(new NotificationItem
+                    {
+                        Title = $"Được chia sẻ bởi {file.OwnerName}",
+                        Message = $"{file.FileName} ({file.FormattedSize}) - Quyền: {file.AccessLevel}",
+                        Time = "Mới đây", // FTP không trả về ngày share, tạm thời để text này hoặc cần update DB để lấy ngày
+                        Timestamp = DateTime.Now, // Cần update DB nếu muốn chính xác
+                        IsRead = false
+                    });
+                }
+
+                NotificationList.ItemsSource = _notifications;
+                UpdateNotificationBadge();
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi thầm lặng hoặc hiện thông báo nhỏ
+                System.Diagnostics.Debug.WriteLine("Lỗi tải thông báo: " + ex.Message);
+            }
         }
 
         private void UpdateNotificationBadge()
