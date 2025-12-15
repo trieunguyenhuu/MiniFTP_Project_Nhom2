@@ -1,12 +1,13 @@
-﻿using System;
+﻿using MiniFTPClient_WPF.Services;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using MiniFTPClient_WPF.Services;
 
 namespace MiniFTPClient_WPF.tinnhan
 {
@@ -22,6 +23,7 @@ namespace MiniFTPClient_WPF.tinnhan
         public bool IsReceived { get; set; }
         public DateTime Date { get; set; }
         public string AvatarPath { get; set; }
+        private bool _isAccepted;  // THÊM DÒNG NÀY
 
         public string Initial
         {
@@ -32,6 +34,26 @@ namespace MiniFTPClient_WPF.tinnhan
                 return Sender.Substring(0, 1).ToUpper();
             }
         }
+        public bool IsAccepted
+        {
+            get => _isAccepted;
+            set
+            {
+                _isAccepted = value;
+                OnPropertyChanged(nameof(IsAccepted));
+                OnPropertyChanged(nameof(ShowDownloadButton));
+                OnPropertyChanged(nameof(ShowAcceptDeclineButtons));
+            }
+        }
+
+        public Visibility ShowDownloadButton => IsAccepted ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility ShowAcceptDeclineButtons => IsAccepted ? Visibility.Collapsed : Visibility.Visible;
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
     }
 
     public partial class Tinnhan : Page
@@ -73,6 +95,7 @@ namespace MiniFTPClient_WPF.tinnhan
                     Time = "Mới đây",
                     Date = DateTime.Now,
                     IsReceived = true,
+                    IsAccepted = false,
                     AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
                 });
             }
@@ -138,6 +161,31 @@ namespace MiniFTPClient_WPF.tinnhan
                     }
                 }
             }
+        }
+        private async void Btn_Download_Shared_Click(object sender, RoutedEventArgs e)
+        {
+            //await FtpClientService.Instance.DownloadFileAsync(item.Id, dlg.FileName, item.SizeBytes);
+        }
+        private async void Btn_Accept_Click(object sender, RoutedEventArgs e)
+        {
+            //var button = sender as Button;
+            //var message = button?.DataContext as MessageItem;
+
+            //if (message != null)
+            //{
+            //    message.IsAccepted = true;
+
+            //    MessageBox.Show($"Đã chấp nhận file: {message.FileName}", "Chấp nhận",
+            //        MessageBoxButton.OK, MessageBoxImage.Information);
+            //}
+            if (sender is Button btn && btn.DataContext is MessageItem msg)
+            {
+                msg.IsAccepted = true;
+
+                // Ép refresh để UI cập nhật Visibility
+                CollectionViewSource.GetDefaultView(ReceivedList.ItemsSource)?.Refresh();
+            }
+
         }
 
         private void LoadDummyData()
@@ -343,6 +391,21 @@ namespace MiniFTPClient_WPF.tinnhan
             if (filter.Contains("Lớn")) return sizeInBytes > 10485760; // > 10MB
 
             return true;
+        }
+
+        public class BoolToVisibilityConverter : IValueConverter
+        {
+            public bool Inverse { get; set; } // đảo điều kiện
+
+            public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            {
+                bool flag = value is bool b && b;
+                if (Inverse) flag = !flag;
+                return flag ? Visibility.Visible : Visibility.Collapsed;
+            }
+
+            public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+                => throw new NotImplementedException();
         }
     }
 }

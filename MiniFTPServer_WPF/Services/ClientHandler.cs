@@ -50,6 +50,8 @@ namespace MiniFtpServer_WPF.Services
 
         public const string CWD = "CWD"; // thay đổi thư mục làm việc
         public const string CWD_SUCCESS = "CWD_SUCCESS";
+
+        public const string ACCEPT_FILE = "ACCEPT_FILE";
     }
 
     public class ClientHandler
@@ -208,7 +210,7 @@ namespace MiniFtpServer_WPF.Services
 
                             case FtpCommands.CWD:
                                 await HandleCwd(parts, writer);
-                                break;
+                                break;                          
 
                             default:
                                 await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lệnh không hợp lệ");
