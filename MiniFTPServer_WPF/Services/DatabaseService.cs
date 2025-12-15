@@ -485,7 +485,7 @@ namespace MiniFtpServer_WPF.Services
                     {
                         cmd.Parameters.AddWithValue("@uid", userId);
                         cmd.Parameters.AddWithValue("@pid", parentId);
-                        cmd.Parameters.AddWithValue("@name", folderName.TrimEnd('/')); // Bỏ dấu / nếu có
+                        cmd.Parameters.AddWithValue("@name", folderName);
                         var result = cmd.ExecuteScalar();
                         if (result != null) return Convert.ToInt32(result);
                     }
