@@ -483,7 +483,7 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <Button Style="{StaticResource CreatBotton}" x:Name="btnCreatFolder" Content="Tạo thư mục" FontSize="16" Padding="10,4" Margin="0,0,6,0" />
+                            <Button Style="{StaticResource CreatBotton}" x:Name="btnCreatFolder" Click="CreateFolder_Click" Content="Tạo thư mục" FontSize="16" Padding="10,4" Margin="0,0,6,0" />
                             <Button Style="{StaticResource UpLoadButton}" x:Name="btnUpload" Click="BtnUpload_Click" Content="Tải lên" FontSize="16" Padding="10,4" Margin="0,0,6,0" />
                             <!--#endregion  <Button Style="{StaticResource SimpleButton}" x:Name="BtnRefresh" Click="BtnRefresh_Click" Content="Làm mới" FontSize="16" Padding="10,4"/> -->
                            

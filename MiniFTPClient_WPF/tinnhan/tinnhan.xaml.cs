@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -10,6 +11,8 @@ namespace MiniFTPClient_WPF.tinnhan
 {
     public class MessageItem
     {
+        public long SizeInBytes { get; set; }  // Để sắp xếp theo dung lượng
+        public bool IsRead { get; set; }       // Đánh dấu đã đọc
         public string Sender { get; set; }
         public string Time { get; set; }
         public string FileName { get; set; }
@@ -37,13 +40,21 @@ namespace MiniFTPClient_WPF.tinnhan
         private readonly ObservableCollection<MessageItem> _sentMessages =
             new ObservableCollection<MessageItem>();
 
+        private ListCollectionView _receivedView;
+        private ListCollectionView _sentView;
         public Tinnhan()
         {
             InitializeComponent();
             LoadDummyData();
             BindData();
+            SetupFilters();
         }
 
+        private void SetupFilters()
+        {
+            CbReceiveDateFilter.SelectionChanged += FilterReceived_Changed;
+            CbSenderFilter.SelectionChanged += FilterReceived_Changed;
+        }
         private void LoadDummyData()
         {
             // Tin đã nhận
@@ -139,13 +150,15 @@ namespace MiniFTPClient_WPF.tinnhan
 
         private void BindData()
         {
-            var viewReceive = new ListCollectionView(_receivedMessages);
-            viewReceive.GroupDescriptions.Add(new PropertyGroupDescription(nameof(MessageItem.Date)));
-            ReceivedList.ItemsSource = viewReceive;
+            _receivedView = new ListCollectionView(_receivedMessages);
+            _receivedView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(MessageItem.Date)));
+            _receivedView.SortDescriptions.Add(new SortDescription(nameof(MessageItem.Date), ListSortDirection.Descending)); // THÊM DÒNG NÀY
+            ReceivedList.ItemsSource = _receivedView;
 
-            var viewSent = new ListCollectionView(_sentMessages);
-            viewSent.GroupDescriptions.Add(new PropertyGroupDescription(nameof(MessageItem.Date)));
-            SentList.ItemsSource = viewSent;
+            _sentView = new ListCollectionView(_sentMessages);
+            _sentView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(MessageItem.Date)));
+            _sentView.SortDescriptions.Add(new SortDescription(nameof(MessageItem.Date), ListSortDirection.Descending)); // THÊM DÒNG NÀY
+            SentList.ItemsSource = _sentView;
         }
 
         // Search Received
@@ -156,6 +169,7 @@ namespace MiniFTPClient_WPF.tinnhan
                     ? Visibility.Visible
                     : Visibility.Collapsed;
 
+            FilterReceived_Changed(null, null);
             // TODO: thêm filter theo _receivedMessages nếu bạn muốn
         }
 
@@ -172,6 +186,8 @@ namespace MiniFTPClient_WPF.tinnhan
 
         private void TabReceived_Click(object sender, RoutedEventArgs e)
         {
+            TabSent.IsChecked = false;
+
             ReceivedPanel.Visibility = Visibility.Visible;
             SentPanel.Visibility = Visibility.Collapsed;
 
@@ -184,6 +200,8 @@ namespace MiniFTPClient_WPF.tinnhan
 
         private void TabSent_Click(object sender, RoutedEventArgs e)
         {
+            TabReceived.IsChecked = false;
+
             SentPanel.Visibility = Visibility.Visible;
             ReceivedPanel.Visibility = Visibility.Collapsed;
 
@@ -194,5 +212,52 @@ namespace MiniFTPClient_WPF.tinnhan
             FilterReceivedPanel.Visibility = Visibility.Collapsed;
         }
 
+        private void FilterReceived_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (_receivedView == null) return;
+
+            _receivedView.Filter = item =>
+            {
+                if (item is not MessageItem msg) return false;
+
+                // Lọc theo ngày
+                var dateFilter = (CbReceiveDateFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
+                if (!FilterByDate(msg, dateFilter))
+                    return false;
+
+                // Lọc theo dung lượng
+                var sizeFilter = (CbSenderFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
+                if (!FilterBySize(msg, sizeFilter))
+                    return false;
+
+                // Lọc theo search box
+                var searchText = SearchBoxReceived.Text.Trim().ToLower();
+                if (!string.IsNullOrEmpty(searchText) && !msg.Sender.ToLower().Contains(searchText))
+                    return false;
+
+                return true;
+            };
+            _receivedView.Refresh();
+        }
+
+        private bool FilterByDate(MessageItem msg, string filter)
+        {
+            if (string.IsNullOrEmpty(filter) || filter == "Tất cả") return true;
+            if (filter == "Hôm nay") return msg.Date.Date == DateTime.Now.Date;
+            if (filter == "7 ngày trước") return msg.Date >= DateTime.Now.AddDays(-7);
+            return true;
+        }
+
+        private bool FilterBySize(MessageItem msg, string filter)
+        {
+            if (string.IsNullOrEmpty(filter) || filter == "Tất cả") return true;
+
+            long sizeInBytes = msg.SizeInBytes;
+            if (filter.Contains("Nhỏ")) return sizeInBytes < 1048576; // < 1MB
+            if (filter.Contains("Trung bình")) return sizeInBytes >= 1048576 && sizeInBytes <= 10485760; // 1-10MB
+            if (filter.Contains("Lớn")) return sizeInBytes > 10485760; // > 10MB
+
+            return true;
+        }
     }
 }

@@ -258,15 +258,74 @@
                     <!-- User info -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                         <!-- Nút thông báo -->
-                        <Button Style="{StaticResource SidebarButton}" Background="Transparent" BorderThickness="0" Padding="8,4" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="NotificationButton" 
+                                Style="{StaticResource SidebarButton}" 
+                                Background="Transparent" 
+                                BorderThickness="0" 
+                                Padding="8,4" 
+                                Margin="0,0,12,0" 
+                                Click="NotificationButton_Click">
+                            <Grid>
                                 <Icon:PackIconMaterial Kind="BellOutline" Width="22" Height="22" VerticalAlignment="Center" Foreground="Gray"/>
-                                <!-- Badge thông báo -->
-                                <Border Background="#EF4444" Width="16" Height="16" CornerRadius="8" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="-11,-6,0,0">
-                                    <TextBlock Text="99" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border x:Name="NotificationBadge" Background="#EF4444" Width="16" Height="16" CornerRadius="8" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="-11,-6,0,0">
+                                    <TextBlock x:Name="NotificationCount" Text="0" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
-                            </StackPanel>
+                            </Grid>
                         </Button>
+                        <Popup x:Name="NotificationPopup" 
+                               PlacementTarget="{Binding ElementName=NotificationButton}"
+                               Placement="Bottom"
+                               AllowsTransparency="True"
+                               StaysOpen="False"
+                               Width="380"
+                               HorizontalOffset="-340">
+                            <Border Background="White" CornerRadius="12" BorderBrush="#E5E7EB" BorderThickness="1" Margin="0,8,0,0" Padding="0">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.15"/>
+                                </Border.Effect>
+                                <StackPanel>
+                                    <!-- Header - SỬA DÒNG NÀY -->
+                                    <Grid Margin="16,12,16,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Thông báo" FontSize="18" FontWeight="SemiBold"/>
+                                        <Button Grid.Column="1" Content="Đánh dấu đã đọc" FontSize="12" Foreground="#2563EB" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="MarkAllRead_Click"/>
+                                    </Grid>
+
+                                    <Border Height="1" Background="#E5E7EB"/>
+
+                                    <ScrollViewer MaxHeight="400" VerticalScrollBarVisibility="Auto">
+                                        <ItemsControl x:Name="NotificationList">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <!-- SỬA DÒNG NÀY -->
+                                                    <Border Padding="16,12" Background="{Binding BackgroundColor}" Cursor="Hand" MouseEnter="NotificationItem_MouseEnter" MouseLeave="NotificationItem_MouseLeave">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Border Grid.Column="0" Width="40" Height="40" CornerRadius="20" Background="#E0EAFF" Margin="0,0,12,0">
+                                                                <Icon:PackIconMaterial Kind="Email" Width="20" Height="20" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Border>
+                                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="14"/>
+                                                                <TextBlock Text="{Binding Message}" Foreground="#6B7280" FontSize="12" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                                                            </StackPanel>
+                                                            <TextBlock Grid.Column="2" Text="{Binding Time}" Foreground="#9CA3AF" FontSize="11" VerticalAlignment="Top"/>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </StackPanel>
+                            </Border>
+                        </Popup>
+
                         <Ellipse Width="40" Height="40" VerticalAlignment="Center">
                             <Ellipse.Fill>
                                 <ImageBrush ImageSource="/anh/karina.jpg" Stretch="UniformToFill"/>
@@ -280,7 +339,7 @@
                 </Grid>
             </Border>
 
-            <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden" Grid.Row="1" />
+            <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden" Margin="-10,70,10,5" Grid.RowSpan="2" />
         </Grid>
     </Grid>
 </Window>
