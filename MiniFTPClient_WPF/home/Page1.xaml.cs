@@ -112,12 +112,6 @@ namespace MiniFTPClient_WPF.home
 
         private async void NavigateInto(string folderName)
         {
-            // Thêm vào đường dẫn
-            Breadcrumbs.Add(folderName);
-
-            // TODO: Ở các bước sau, bạn cần bổ sung hàm "ChangeDirectory" vào FtpClientService 
-            // để Server thực sự chuyển thư mục. Hiện tại ta cứ gọi Refresh list.
-            _ = LoadFilesFromServer();
             // 1. Gọi Server chuyển thư mục hiện tại
             bool ok = await FtpClientService.Instance.ChangeDirectoryAsync(folderName);
 
