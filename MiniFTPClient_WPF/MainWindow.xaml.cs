@@ -65,11 +65,6 @@ namespace MiniFTPClient_WPF
 
             LoadNotifications();
             UpdateNotificationBadge();
-            // Tự động quét thông báo mỗi 10 giây
-            System.Windows.Threading.DispatcherTimer timer = new System.Windows.Threading.DispatcherTimer();
-            timer.Interval = TimeSpan.FromSeconds(10);
-            timer.Tick += (s, e) => LoadNotifications();
-            timer.Start();
 
             // Đăng ký sự kiện khi bấm nút X
             this.Closing += MainWindow_Closing;
@@ -134,7 +129,7 @@ namespace MiniFTPClient_WPF
                     _notifications.Add(new NotificationItem
                     {
                         Title = $"Được chia sẻ bởi {file.OwnerName}",
-                        Message = $"{file.FileName} ({file.FormattedSize}) - Quyền: {file.AccessLevel}",
+                        Message = $"{file.FileName} ({file.FormattedSize}).",
                         Time = "Mới đây", // FTP không trả về ngày share, tạm thời để text này hoặc cần update DB để lấy ngày
                         Timestamp = DateTime.Now, // Cần update DB nếu muốn chính xác
                         IsRead = false
