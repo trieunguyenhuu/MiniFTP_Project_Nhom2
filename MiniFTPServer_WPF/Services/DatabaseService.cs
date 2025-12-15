@@ -709,6 +709,65 @@ namespace MiniFtpServer_WPF.Services
             return list;
         }
 
+        // ==================== LẤY DANH SÁCH FILE ĐÃ GỬI (SENT) ====================
+        /// <summary>
+        /// Lấy danh sách các file mà User này (Owner) đang chia sẻ cho người khác
+        /// </summary>
+        public List<Tuple<int, string, long, string, string>> GetSentFiles(int ownerId)
+        {
+            var list = new List<Tuple<int, string, long, string, string>>();
+
+            try
+            {
+                using (var conn = new SQLiteConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // Join 3 bảng: Permissions (để lấy quyền), Files (để lấy thông tin file), Users (để lấy tên người nhận)
+                    string sql = @"
+                SELECT 
+                    f.file_id,
+                    f.file_name,
+                    f.file_size,
+                    p.access_level,
+                    u.full_name as receiver_name
+                FROM Permissions p
+                JOIN Files f ON p.file_id = f.file_id
+                JOIN Users u ON p.shared_with_user_id = u.user_id
+                WHERE f.owner_user_id = @uid 
+                    AND f.is_deleted = 0
+                ORDER BY f.created_at DESC";
+
+                    using (var cmd = new SQLiteCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@uid", ownerId);
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                int id = reader.GetInt32(0);
+                                string name = reader.GetString(1);
+                                long size = reader.GetInt64(2);
+                                string access = reader.GetString(3);
+                                string receiver = reader.GetString(4); // Tên người nhận
+
+                                // Cấu trúc Tuple: ID, Tên File, Size, Quyền, Tên Người Nhận
+                                list.Add(new Tuple<int, string, long, string, string>(
+                                    id, name, size, access, receiver));
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi lấy file đã gửi: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            return list;
+        }
+
         // ==================== HỦY CHIA SẺ ====================
         /// <summary>
         /// Hủy chia sẻ file với user

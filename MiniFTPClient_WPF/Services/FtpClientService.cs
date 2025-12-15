@@ -23,7 +23,7 @@ namespace MiniFTPClient_WPF.Services
 
         public bool IsConnected => _client != null && _client.Connected;
         public string CurrentUsername { get; private set; }
-
+        public int CurrentUserId { get; private set; }
         public string CurrentFullName { get; private set; }
         public string CurrentEmail { get; private set; }
         public string CurrentDescription { get; private set; }
@@ -73,9 +73,22 @@ namespace MiniFTPClient_WPF.Services
                     CurrentUsername = username;
                     // Lấy tên hiển thị: LOGIN_SUCCESS|Nguyễn Lan Anh
                     var parts = response.Split('|');
-                    CurrentFullName = parts.Length > 1 ? parts[1] : username;
-                    CurrentEmail = parts.Length > 2 ? parts[2] : "";
-                    CurrentDescription = parts.Length > 3 ? parts[3] : "";
+                    // 1. Lấy User ID (Index 1)
+                    if (parts.Length > 1)
+                    {
+                        int.TryParse(parts[1], out int uid);
+                        CurrentUserId = uid;
+                    }
+
+                    // 2. Lấy Tên hiển thị (Index 2) -> SỬA DÒNG NÀY
+                    // (Lúc trước bạn để parts[1] nên nó lấy nhầm ID)
+                    CurrentFullName = parts.Length > 2 ? parts[2] : username;
+
+                    // 3. Lấy Email (Index 3)
+                    CurrentEmail = parts.Length > 3 ? parts[3] : "";
+
+                    // 4. Lấy Mô tả (Index 4)
+                    CurrentDescription = parts.Length > 4 ? parts[4] : " ";
                     return "OK";
                 }
                 return response?.Split('|')[1] ?? "Lỗi không xác định";
@@ -558,6 +571,58 @@ namespace MiniFTPClient_WPF.Services
                 }
                 return $"{len:0.##} {sizes[order]}";
             }
+        }
+
+        // ==================== LẤY DANH SÁCH FILE ĐÃ GỬI (SENT) ====================
+        public async Task<List<SharedFileItem>> GetSentFilesAsync()
+        {
+            var list = new List<SharedFileItem>();
+            if (!IsConnected) return list;
+
+            try
+            {
+                await _writer.WriteLineAsync("GET_SENT_FILES"); // Gửi lệnh mới
+                string resp = await _reader.ReadLineAsync();
+
+                if (resp != null && resp.StartsWith("SENT_FILES_LIST"))
+                {
+                    string data = resp.Substring(16); // Bỏ chữ SENT_FILES_LIST| (độ dài 16)
+                    if (!string.IsNullOrEmpty(data))
+                    {
+                        var items = data.Split(';', StringSplitOptions.RemoveEmptyEntries);
+
+                        foreach (var item in items)
+                        {
+                            // Format: id|name|size|access|receiverName
+                            var parts = item.Split('|');
+                            if (parts.Length >= 5)
+                            {
+                                list.Add(new SharedFileItem
+                                {
+                                    FileId = int.Parse(parts[0]),
+                                    FileName = parts[1],
+                                    FileSize = long.Parse(parts[2]),
+                                    AccessLevel = parts[3],
+                                    OwnerName = parts[4] // Trong trường hợp này, OwnerName đóng vai trò là "Người nhận"
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi lấy sent files: {ex.Message}");
+            }
+
+            return list;
+        }
+
+        public async Task<bool> CreateDirectoryAsync(string folderName)
+        {
+            // Gửi lệnh MKDIR|TenThuMuc
+            string result = await SendCommandAsync($"MKDIR|{folderName}");
+            return result != null && result.StartsWith("MKDIR_SUCCESS");
         }
 
         // Chuyển thư mục

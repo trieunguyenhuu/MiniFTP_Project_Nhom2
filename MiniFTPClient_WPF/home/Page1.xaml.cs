@@ -35,11 +35,16 @@ namespace MiniFTPClient_WPF.home
             // Khởi tạo Breadcrumb
             Breadcrumbs.Add("Home");
 
-            _ = LoadFilesFromServer();
+            //_ = LoadFilesFromServer();
 
             RecipientList.ItemsSource = _users;
 
             UpdateShareButtonState();
+        }
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Mỗi khi vào trang này sẽ tự tải lại danh sách file
+            _ = LoadFilesFromServer();
         }
 
         // --- HÀM TẢI DỮ LIỆU TỪ SERVER ---
@@ -532,30 +537,27 @@ namespace MiniFTPClient_WPF.home
             }
         }
 
-        private void CreateFolder_Click(object sender, RoutedEventArgs e)
+        private async void CreateFolder_Click(object sender, RoutedEventArgs e)
         {
-            // Hiện dialog
             var dialog = new CreateFolderDialog();
             if (dialog.ShowDialog() == true)
             {
                 string folderName = dialog.FolderName;
+                if (string.IsNullOrWhiteSpace(folderName)) return;
 
-                if (string.IsNullOrWhiteSpace(folderName))
+                // 1. GỌI SERVER TẠO THƯ MỤC
+                bool ok = await FtpClientService.Instance.CreateDirectoryAsync(folderName);
+
+                if (ok)
                 {
-                    MessageBox.Show("Tên thư mục không được để trống!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
+                    MessageBox.Show($"Đã tạo thư mục '{folderName}' thành công!", "Thành công");
+                    // 2. Tải lại danh sách từ Server để đồng bộ chuẩn xác
+                    await LoadFilesFromServer();
                 }
-
-                if (Files.Any(f => f.Name.TrimEnd('/').Equals(folderName, StringComparison.OrdinalIgnoreCase)))
+                else
                 {
-                    MessageBox.Show("Thư mục này đã tồn tại!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
+                    MessageBox.Show("Tạo thư mục thất bại (có thể đã tồn tại).", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
-
-                var newFolder = new FileItem(0, folderName + "/", true, 0);
-                Files.Insert(0, newFolder);
-
-                MessageBox.Show($"Đã tạo thư mục '{folderName}' thành công!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 

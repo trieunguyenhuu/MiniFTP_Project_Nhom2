@@ -45,6 +45,9 @@ namespace MiniFtpServer_WPF.Services
         public const string CHECK_ACCESS = "CHECK_ACCESS";
         public const string SHARE_FILE_BY_NAME = "SHARE_FILE_BY_NAME";
 
+        public const string GET_SENT_FILES = "GET_SENT_FILES";
+        public const string SENT_FILES_LIST = "SENT_FILES_LIST";
+
         public const string CWD = "CWD"; // thay đổi thư mục làm việc
         public const string CWD_SUCCESS = "CWD_SUCCESS";
     }
@@ -107,7 +110,7 @@ namespace MiniFtpServer_WPF.Services
 
                                 _currentFolderId = _dbService.GetUserRootFolderId(_userId);
 
-                                await writer.WriteLineAsync($"{FtpCommands.LOGIN_SUCCESS}|{fullName}|{email}|{description}");
+                                await writer.WriteLineAsync($"{FtpCommands.LOGIN_SUCCESS}|{_userId}|{fullName}|{email}|{description}");
                                 _logAction($"✓ User {_username} ({fullName}) đã đăng nhập từ {ip}");
                             }
                             else
@@ -197,6 +200,10 @@ namespace MiniFtpServer_WPF.Services
 
                             case FtpCommands.SHARE_FILE_BY_NAME:
                                 await HandleShareFileByName(parts, writer);
+                                break;
+
+                            case FtpCommands.GET_SENT_FILES:
+                                await HandleGetSentFiles(writer);
                                 break;
 
                             case FtpCommands.CWD:
@@ -658,7 +665,7 @@ namespace MiniFtpServer_WPF.Services
                 }
 
                 await writer.WriteLineAsync($"{FtpCommands.SHARED_FILES_LIST}|{sb}");
-                _logAction($"📥 {_username} xem file được chia sẻ");
+                //_logAction($"📥 {_username} xem file được chia sẻ");
             }
             catch (Exception ex)
             {
@@ -810,6 +817,28 @@ namespace MiniFtpServer_WPF.Services
             {
                 await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi chia sẻ: {ex.Message}");
                 _logAction($"✗ Lỗi share file by name: {ex.Message}");
+            }
+        }
+
+        private async Task HandleGetSentFiles(StreamWriter writer)
+        {
+            try
+            {
+                // Gọi hàm DB vừa viết ở Bước 1
+                var files = _dbService.GetSentFiles(_userId);
+                StringBuilder sb = new StringBuilder();
+
+                foreach (var file in files)
+                {
+                    // Format: id|name|size|access|receiverName;
+                    sb.Append($"{file.Item1}|{file.Item2}|{file.Item3}|{file.Item4}|{file.Item5};");
+                }
+
+                await writer.WriteLineAsync($"{FtpCommands.SENT_FILES_LIST}|{sb}");
+            }
+            catch (Exception ex)
+            {
+                await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi lấy tin đã gửi: {ex.Message}");
             }
         }
 

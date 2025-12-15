@@ -63,8 +63,16 @@ namespace MiniFTPClient_WPF
                 txtUserName.Text = FtpClientService.Instance.CurrentFullName;
             }
 
+            // 1. Gọi lần đầu
             LoadNotifications();
             UpdateNotificationBadge();
+
+            // 2. THÊM TIMER ĐỂ TẠO REAL-TIME GIẢ LẬP
+            // Tự động quét thông báo mỗi 5 giây
+            var timer = new System.Windows.Threading.DispatcherTimer();
+            timer.Tick += (s, e) => LoadNotifications();
+            timer.Interval = TimeSpan.FromSeconds(5); // Cứ 5s check 1 lần
+            timer.Start();
 
             // Đăng ký sự kiện khi bấm nút X
             this.Closing += MainWindow_Closing;
