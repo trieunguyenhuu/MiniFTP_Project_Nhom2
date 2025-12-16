@@ -113,12 +113,12 @@ namespace MiniFtpServer_WPF.Services
                                 _currentFolderId = _dbService.GetUserRootFolderId(_userId);
 
                                 await writer.WriteLineAsync($"{FtpCommands.LOGIN_SUCCESS}|{_userId}|{fullName}|{email}|{description}");
-                                _logAction($"✓ User {_username} ({fullName}) đã đăng nhập từ {ip}");
+                                _logAction($"User {_username} ({fullName}) đã đăng nhập từ {ip}");
                             }
                             else
                             {
                                 await writer.WriteLineAsync($"{FtpCommands.LOGIN_FAIL}|Sai tài khoản hoặc mật khẩu");
-                                _logAction($"✗ Đăng nhập thất bại từ {ip}");
+                                _logAction($"Đăng nhập thất bại từ {ip}");
                             }
                             continue;
                         }
@@ -177,7 +177,7 @@ namespace MiniFtpServer_WPF.Services
 
                             case FtpCommands.QUIT:
                             case FtpCommands.LOGOUT:
-                                _logAction($"→ User {_username} đã đăng xuất");
+                                _logAction($"User {_username} đã đăng xuất");
                                 return;
 
                             case FtpCommands.SHARE_FILE:
