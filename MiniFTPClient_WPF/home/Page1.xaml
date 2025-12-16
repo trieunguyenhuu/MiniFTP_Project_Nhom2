@@ -12,6 +12,132 @@
 
     <Page.Resources>
 
+        <Style x:Key="CreateGradientButton1" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Background" Value="Transparent"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                        CornerRadius="10"
+                        Padding="{TemplateBinding Padding}">
+                            <Border.Background>
+                                <!-- 🟦 Mặc định: GRADIENT XANH -->
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#93C5FD" Offset="0"/>
+                                    <GradientStop Color="#2563EB" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+
+                            <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+
+                            <!-- 🟥 DISABLED → XÁM -->
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Background">
+                                    <Setter.Value>
+                                        <SolidColorBrush Color="#9CA3AF"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="Foreground" Value="#F3F4F6"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+
+                            <!-- Hover (chỉ khi enabled) -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#60A5FA" Offset="0"/>
+                                            <GradientStop Color="#1D4ED8" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+
+                            <!-- Pressed -->
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="RoundedTextBoxStyle" TargetType="TextBox">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Grid>
+                            <!-- Border bo góc -->
+                            <Border x:Name="border"
+                    CornerRadius="14"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"/>
+
+                            <!-- Placeholder -->
+                            <TextBlock x:Name="placeholder"
+                       Text="{TemplateBinding Tag}"
+                       Foreground="#9CA3AF"
+                       Margin="15,0,0,0"
+                       VerticalAlignment="Center"
+                       IsHitTestVisible="False"
+                       Visibility="Collapsed"/>
+
+                            <!-- Nội dung thực -->
+                            <ScrollViewer x:Name="PART_ContentHost"
+                          Margin="0,0"
+                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Grid>
+
+                        <ControlTemplate.Triggers>
+
+                            <!-- Hiện placeholder nếu rỗng -->
+                            <Trigger Property="Text" Value="">
+                                <Setter TargetName="placeholder" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="Text" Value="{x:Null}">
+                                <Setter TargetName="placeholder" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+
+                            <!-- Focus -->
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#6366F1"/>
+                                <Setter TargetName="border" Property="Background" Value="White"/>
+                            </Trigger>
+
+                            <!-- Disabled -->
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="CreatBotton" TargetType="Button">
             <Setter Property="Background" Value="White"/>
             <Setter Property="Foreground" Value="#16A34A"/>
@@ -954,6 +1080,107 @@
                     Width="100" Height="36"
                     Click="CloseSharePanel_Click"
                     Margin="10,0,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!--  CREATE FOLDER PANEL -->
+        <Border x:Name="CreateFolderPanel"
+                Grid.RowSpan="3"
+                Background="#F8FAFF"
+                CornerRadius="20"
+                Visibility="Collapsed"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                Width="420"
+                Height="260"
+                BorderThickness="1"
+                BorderBrush="#D6E4FF">
+
+            <Border.Effect>
+                <DropShadowEffect Color="#2563EB"
+                                  BlurRadius="30"
+                                  ShadowDepth="0"
+                                  Opacity="0.18"/>
+            </Border.Effect>
+
+            <Grid Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- HEADER -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Title -->
+                    <StackPanel Orientation="Horizontal">
+                        <Icon:PackIconMaterial Kind="FolderPlusOutline"
+                                               Width="22"
+                                               Height="22"
+                                               Foreground="#16A34A"
+                                               Margin="0,0,8,-5"
+                                               VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Tạo thư mục mới"
+                                   FontSize="20"
+                                   FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- ❌ Button -->
+                    <Button Grid.Column="1"
+                            Content="✕"
+                            Width="36"
+                            Height="36"
+                            FontSize="16"
+                            FontWeight="Bold"
+                            Background="Transparent"
+                            Foreground="Red"
+                            BorderBrush="{x:Null}"
+                            Cursor="Hand"
+                            Click="CloseCreateFolderPanel_Click"/>
+                </Grid>
+
+
+                <!-- INPUT -->
+                <StackPanel Grid.Row="1" Margin="0,20,0,0">
+                    <TextBlock Text="Tên thư mục"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,6"/>
+
+                    <TextBox x:Name="TxtNewFolderName"
+                             Style="{StaticResource RoundedTextBoxStyle}"
+                            Tag="Nhập tên folder ..."
+                            Text=""
+                             TextChanged="TxtNewFolderName_TextChanged"/>
+                </StackPanel>
+
+                <!-- FOOTER -->
+                <StackPanel Grid.Row="3"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Margin="0,20,0,0">
+
+                    <Button Content="Tạo"
+                            x:Name="BtnCreateFolderConfirm"
+                            Width="100"
+                            Height="36"
+                            Style="{StaticResource CreateGradientButton1}"
+                            IsEnabled="False"
+                            Click="ConfirmCreateFolder_Click"/>
+
+                    <Button Content="Hủy"
+                            Width="100"
+                            Height="36"
+                            Margin="10,0,0,0"
+                            Style="{StaticResource FooterCancelButton}"
+                            Click="CloseCreateFolderPanel_Click"/>
                 </StackPanel>
             </Grid>
         </Border>

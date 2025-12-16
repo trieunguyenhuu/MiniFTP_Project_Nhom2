@@ -269,8 +269,11 @@ namespace MiniFTPClient_WPF.home
 
         private void Overlay_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            CloseSharePanel_Click(sender, null);
+            SharePanel.Visibility = Visibility.Collapsed;
+            CreateFolderPanel.Visibility = Visibility.Collapsed;
+            Overlay.Visibility = Visibility.Collapsed;
         }
+
 
         private void RecipientList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -537,29 +540,6 @@ namespace MiniFTPClient_WPF.home
             }
         }
 
-        private async void CreateFolder_Click(object sender, RoutedEventArgs e)
-        {
-            var dialog = new CreateFolderDialog();
-            if (dialog.ShowDialog() == true)
-            {
-                string folderName = dialog.FolderName;
-                if (string.IsNullOrWhiteSpace(folderName)) return;
-
-                // 1. GỌI SERVER TẠO THƯ MỤC
-                bool ok = await FtpClientService.Instance.CreateDirectoryAsync(folderName);
-
-                if (ok)
-                {
-                    MessageBox.Show($"Đã tạo thư mục '{folderName}' thành công!", "Thành công");
-                    // 2. Tải lại danh sách từ Server để đồng bộ chuẩn xác
-                    await LoadFilesFromServer();
-                }
-                else
-                {
-                    MessageBox.Show("Tạo thư mục thất bại (có thể đã tồn tại).", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-        }
 
         // --- 1. SỰ KIỆN NÚT TẢI XUỐNG ---
         private async void BtnDownload_Click(object sender, RoutedEventArgs e)
@@ -620,94 +600,50 @@ namespace MiniFTPClient_WPF.home
             await LoadFilesFromServer();
         }
 
-    }
-
-    // 2 Class để tạo thư mục
-    public class CreateFolderDialog : Window
-    {
-        private TextBox _textBox;
-        public string FolderName { get; private set; }
-
-        public CreateFolderDialog()
+        //Hàm gọi border tạo thư mục
+        private void CreateFolder_Click(object sender, RoutedEventArgs e)
         {
-            Title = "Tạo thư mục mới";
-            Width = 400;
-            Height = 180;
-            WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            ResizeMode = ResizeMode.NoResize;
+            Overlay.Visibility = Visibility.Visible;
+            Panel.SetZIndex(Overlay, 999);
 
-            var grid = new Grid { Margin = new Thickness(20) };
-            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            CreateFolderPanel.Visibility = Visibility.Visible;
+            Panel.SetZIndex(CreateFolderPanel, 1000);
 
-            var label = new TextBlock { Text = "Tên thư mục:", FontSize = 14, Margin = new Thickness(0, 0, 0, 8) };
-            Grid.SetRow(label, 0);
-
-            _textBox = new TextBox { FontSize = 14, Padding = new Thickness(8), VerticalContentAlignment = VerticalAlignment.Center };
-            Grid.SetRow(_textBox, 1);
-
-            var buttonPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 16, 0, 0) };
-
-            var btnOk = new Button { Content = "Tạo", Width = 80, Height = 32, Margin = new Thickness(0, 0, 8, 0), IsDefault = true };
-            btnOk.Click += (s, e) => { FolderName = _textBox.Text.Trim(); DialogResult = true; };
-
-            var btnCancel = new Button { Content = "Hủy", Width = 80, Height = 32, IsCancel = true };
-
-            buttonPanel.Children.Add(btnOk);
-            buttonPanel.Children.Add(btnCancel);
-            Grid.SetRow(buttonPanel, 2);
-
-            grid.Children.Add(label);
-            grid.Children.Add(_textBox);
-            grid.Children.Add(buttonPanel);
-
-            Content = grid;
-            Loaded += (s, e) => _textBox.Focus();
+            TxtNewFolderName.Text = "";
+            BtnCreateFolderConfirm.IsEnabled = false;
+            TxtNewFolderName.Focus();
         }
-    }
-
-    public class InputDialog : Window
-    {
-        private TextBox _textBox;
-        public string Answer { get; private set; }
-
-        public InputDialog(string title, string question, string defaultAnswer = "")
+        private void CloseCreateFolderPanel_Click(object sender, RoutedEventArgs e)
         {
-            Title = title;
-            Width = 400;
-            Height = 180;
-            WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            ResizeMode = ResizeMode.NoResize;
+            CreateFolderPanel.Visibility = Visibility.Collapsed;
+            Overlay.Visibility = Visibility.Collapsed;
 
-            var grid = new Grid { Margin = new Thickness(20) };
-            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            Panel.SetZIndex(CreateFolderPanel, 0);
+            Panel.SetZIndex(Overlay, 0);
+        }
 
-            var label = new TextBlock { Text = question, FontSize = 14, Margin = new Thickness(0, 0, 0, 8) };
-            Grid.SetRow(label, 0);
+        private void TxtNewFolderName_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            BtnCreateFolderConfirm.IsEnabled =
+                !string.IsNullOrWhiteSpace(TxtNewFolderName.Text);
+        }
+        private async void ConfirmCreateFolder_Click(object sender, RoutedEventArgs e)
+        {
+            string folderName = TxtNewFolderName.Text.Trim();
+            if (string.IsNullOrWhiteSpace(folderName)) return;
 
-            _textBox = new TextBox { Text = defaultAnswer, FontSize = 14, Padding = new Thickness(8), VerticalContentAlignment = VerticalAlignment.Center };
-            Grid.SetRow(_textBox, 1);
+            bool ok = await FtpClientService.Instance.CreateDirectoryAsync(folderName);
 
-            var buttonPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 16, 0, 0) };
-
-            var btnOk = new Button { Content = "OK", Width = 80, Height = 32, Margin = new Thickness(0, 0, 8, 0), IsDefault = true };
-            btnOk.Click += (s, e) => { Answer = _textBox.Text; DialogResult = true; };
-
-            var btnCancel = new Button { Content = "Hủy", Width = 80, Height = 32, IsCancel = true };
-
-            buttonPanel.Children.Add(btnOk);
-            buttonPanel.Children.Add(btnCancel);
-            Grid.SetRow(buttonPanel, 2);
-
-            grid.Children.Add(label);
-            grid.Children.Add(_textBox);
-            grid.Children.Add(buttonPanel);
-
-            Content = grid;
-            Loaded += (s, e) => { _textBox.Focus(); _textBox.SelectAll(); };
+            if (ok)
+            {
+                await LoadFilesFromServer();
+                CloseCreateFolderPanel_Click(sender, e);
+            }
+            else
+            {
+                MessageBox.Show("Tạo thư mục thất bại.",
+                    "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

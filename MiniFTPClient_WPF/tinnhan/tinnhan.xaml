@@ -349,7 +349,7 @@
 
                     <!-- Combo dung lượng -->
                     <ComboBox x:Name="CbSenderFilter"
-                          Width="180"
+                          Width="190"
                           Padding="8,4"
                           FontSize="15"
                           HorizontalContentAlignment="Left">
@@ -382,27 +382,27 @@
 
                     <Icon:PackIconMaterial Grid.Column="0" Kind="Magnify" Width="18" Height="18" VerticalAlignment="Center" Foreground="#6B7280" Margin="0,0,8,0"/>
                     <TextBox Grid.Column="1"
-                 x:Name="SearchBoxSent"
-                 Background="Transparent"
-                 BorderThickness="0"
-                 Padding="2"
-                 VerticalAlignment="Center"
-                 FontSize="14"
-                 Foreground="#1F2937"
-                 Text=""
-                 MinWidth="200"
-                 Cursor="IBeam"
-                 HorizontalAlignment="Stretch"
-                 TextChanged="SearchBoxSent_TextChanged"
-                 BorderBrush="Gray"/>
-                    <TextBlock Grid.Column="1"
-                   x:Name="SearchPlaceholderSent"
-                   Text=" Tìm kiếm tin đã gửi..."
-                   FontSize="14"
-                   Foreground="#6B7280"
-                   VerticalAlignment="Center"
-                   Margin="2,0,0,0"
-                   IsHitTestVisible="False"/>
+                     x:Name="SearchBoxSent"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     Padding="2"
+                     VerticalAlignment="Center"
+                     FontSize="14"
+                     Foreground="#1F2937"
+                     Text=""
+                     MinWidth="200"
+                     Cursor="IBeam"
+                     HorizontalAlignment="Stretch"
+                     TextChanged="SearchBoxSent_TextChanged"
+                     BorderBrush="Gray"/>
+                        <TextBlock Grid.Column="1"
+                       x:Name="SearchPlaceholderSent"
+                       Text=" Tìm kiếm tin đã gửi..."
+                       FontSize="14"
+                       Foreground="#6B7280"
+                       VerticalAlignment="Center"
+                       Margin="2,0,0,0"
+                       IsHitTestVisible="False"/>
                 </Grid>
             </Border>
 
@@ -427,7 +427,7 @@
 
                 <!-- Combo dung lượng -->
                 <ComboBox x:Name="CbSentFilter"
-                  Width="180"
+                  Width="190"
                   Padding="8,4"
                   FontSize="15"
                   HorizontalContentAlignment="Left">
