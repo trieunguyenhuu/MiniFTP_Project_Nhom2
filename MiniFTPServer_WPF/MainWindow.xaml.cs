@@ -124,9 +124,9 @@ namespace MiniFTPServer_WPF
                     return;
                 }
 
-                if (password.Length < 6)
+                if (password.Length < 3)
                 {
-                    MessageBox.Show("Mật khẩu phải có ít nhất 6 ký tự!", "Cảnh báo",
+                    MessageBox.Show("Mật khẩu phải có ít nhất 3 ký tự!", "Cảnh báo",
                         MessageBoxButton.OK, MessageBoxImage.Warning);
                     NewPassPasswordBox.Focus();
                     return;
