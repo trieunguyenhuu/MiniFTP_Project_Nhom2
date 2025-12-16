@@ -83,6 +83,119 @@ namespace MiniFTPServer_WPF
             lblStatus.Foreground = redBrush;
         }
 
+        // ==================== XỬ LÝ TẠO TÀI KHOẢN ====================
+        private void BtnAdd_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // 1. Lấy dữ liệu từ form
+                string username = TaikhoanBox.Text.Trim();
+
+                string password = _isNewPasswordVisible
+                    ? NewPassVisibleBox.Text.Trim()
+                    : NewPassPasswordBox.Password.Trim();
+
+                string confirmPassword = _isConfirmPasswordVisible
+                    ? ConfirmPassVisibleBox.Text.Trim()
+                    : ConfirmPassPasswordBox.Password.Trim();
+
+                // 2. Validate
+                if (string.IsNullOrWhiteSpace(username))
+                {
+                    MessageBox.Show("Vui lòng nhập tên tài khoản!", "Cảnh báo",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    TaikhoanBox.Focus();
+                    return;
+                }
+
+                if (username.Length < 3)
+                {
+                    MessageBox.Show("Tên tài khoản phải có ít nhất 3 ký tự!", "Cảnh báo",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    TaikhoanBox.Focus();
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(password))
+                {
+                    MessageBox.Show("Vui lòng nhập mật khẩu!", "Cảnh báo",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    NewPassPasswordBox.Focus();
+                    return;
+                }
+
+                if (password.Length < 6)
+                {
+                    MessageBox.Show("Mật khẩu phải có ít nhất 6 ký tự!", "Cảnh báo",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    NewPassPasswordBox.Focus();
+                    return;
+                }
+
+                if (password != confirmPassword)
+                {
+                    MessageBox.Show("Mật khẩu xác nhận không khớp!", "Cảnh báo",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    ConfirmPassPasswordBox.Focus();
+                    return;
+                }
+
+                // 3. Gọi Database Service
+                var db = new DatabaseService();
+                bool success = db.CreateUser(username, password, username, "");
+
+                if (success)
+                {
+                    MessageBox.Show(
+                        $"✓ Tạo tài khoản thành công!\n\n" +
+                        $"Tài khoản: {username}\n" +
+                        $"Mật khẩu: {new string('*', password.Length)}\n\n" +
+                        $"User có thể đăng nhập ngay bây giờ.",
+                        "Thành công",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+
+                    // 4. Reset form
+                    ClearAddForm();
+
+                    // 5. Đóng panel
+                    CloseAddPanel();
+
+                    // 6. Ghi log
+                    Log($"✓ Đã tạo tài khoản mới: {username}");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // ==================== RESET FORM ====================
+        private void ClearAddForm()
+        {
+            TaikhoanBox.Clear();
+            NewPassPasswordBox.Clear();
+            NewPassVisibleBox.Clear();
+            ConfirmPassPasswordBox.Clear();
+            ConfirmPassVisibleBox.Clear();
+
+            _isNewPasswordVisible = false;
+            _isConfirmPasswordVisible = false;
+
+            NewPassEyeIcon.Source = new BitmapImage(
+                new Uri("pack://application:,,,/MiniFTPServer_WPF;component/image/eyeclose.png"));
+            ConfirmPassEyeIcon.Source = new BitmapImage(
+                new Uri("pack://application:,,,/MiniFTPServer_WPF;component/image/eyeclose.png"));
+
+            NewPassVisibleBox.Visibility = Visibility.Collapsed;
+            NewPassPasswordBox.Visibility = Visibility.Visible;
+            ConfirmPassVisibleBox.Visibility = Visibility.Collapsed;
+            ConfirmPassPasswordBox.Visibility = Visibility.Visible;
+        }
+
         // Hàm này sẽ được FtpServer gọi mỗi khi có người kết nối/ngắt kết nối
         private void UpdateConnectionCount(int count)
         {
@@ -109,7 +222,25 @@ namespace MiniFTPServer_WPF
 
         private void TaikhoanBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            TaikhoanPlaceholder.Visibility = string.IsNullOrWhiteSpace(TaikhoanBox.Text) ? Visibility.Visible : Visibility.Collapsed;
+            TaikhoanPlaceholder.Visibility = string.IsNullOrWhiteSpace(TaikhoanBox.Text)
+        ? Visibility.Visible
+        : Visibility.Collapsed;
+
+            // Validate không cho nhập ký tự đặc biệt
+            string text = TaikhoanBox.Text;
+            if (!string.IsNullOrEmpty(text))
+            {
+                // Chỉ cho phép chữ, số, underscore
+                string filtered = new string(text.Where(c =>
+                    char.IsLetterOrDigit(c) || c == '_').ToArray());
+
+                if (filtered != text)
+                {
+                    int cursorPos = TaikhoanBox.SelectionStart;
+                    TaikhoanBox.Text = filtered;
+                    TaikhoanBox.SelectionStart = Math.Max(0, cursorPos - 1);
+                }
+            }
         }
 
         private void NewPassPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
@@ -239,10 +370,16 @@ namespace MiniFTPServer_WPF
 
         private void OpenAddPanel_Click(object sender, RoutedEventArgs e)
         {
+            // Reset form trước khi mở
+            ClearAddForm();
+
             Overlay.Visibility = Visibility.Visible;
-            Panel.SetZIndex(Overlay, 999);          // overlay phía dưới panel
+            Panel.SetZIndex(Overlay, 999);
             Panel.SetZIndex(AddPanel, 1000);
             AddPanel.Visibility = Visibility.Visible;
+
+            // Focus vào ô tài khoản
+            TaikhoanBox.Focus();
         }
 
 

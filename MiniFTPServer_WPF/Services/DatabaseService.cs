@@ -949,5 +949,82 @@ namespace MiniFtpServer_WPF.Services
                 return null;
             }
         }
+
+        // ==================== TẠO TÀI KHOẢN MỚI ====================
+        public bool CreateUser(string username, string password, string fullName = null, string email = null)
+        {
+            try
+            {
+                using (var conn = new SQLiteConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // 1. Kiểm tra username đã tồn tại chưa
+                    string checkSql = "SELECT COUNT(*) FROM Users WHERE username = @u";
+                    using (var checkCmd = new SQLiteCommand(checkSql, conn))
+                    {
+                        checkCmd.Parameters.AddWithValue("@u", username);
+                        long count = (long)checkCmd.ExecuteScalar();
+
+                        if (count > 0)
+                        {
+                            MessageBox.Show("Tên tài khoản đã tồn tại!", "Lỗi",
+                                MessageBoxButton.OK, MessageBoxImage.Warning);
+                            return false;
+                        }
+                    }
+
+                    // 2. Mã hóa mật khẩu
+                    string hashedPassword = HashPassword(password);
+
+                    // 3. Insert user mới
+                    string insertSql = @"INSERT INTO Users (username, password, full_name, Email, Description) 
+                                VALUES (@u, @p, @fn, @em, '')";
+
+                    using (var cmd = new SQLiteCommand(insertSql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@u", username);
+                        cmd.Parameters.AddWithValue("@p", hashedPassword);
+                        cmd.Parameters.AddWithValue("@fn", string.IsNullOrWhiteSpace(fullName) ? username : fullName);
+                        cmd.Parameters.AddWithValue("@em", string.IsNullOrWhiteSpace(email) ? "" : email);
+
+                        int rows = cmd.ExecuteNonQuery();
+
+                        if (rows > 0)
+                        {
+                            // 4. Lấy user_id vừa tạo
+                            string getIdSql = "SELECT last_insert_rowid()";
+                            using (var idCmd = new SQLiteCommand(getIdSql, conn))
+                            {
+                                int newUserId = Convert.ToInt32(idCmd.ExecuteScalar());
+
+                                // 5. Tạo thư mục ROOT cho user
+                                string createRootSql = @"INSERT INTO Files (owner_user_id, parent_id, is_folder, file_name, file_size) 
+                                                VALUES (@uid, NULL, 1, 'ROOT', 0)";
+                                using (var rootCmd = new SQLiteCommand(createRootSql, conn))
+                                {
+                                    rootCmd.Parameters.AddWithValue("@uid", newUserId);
+                                    rootCmd.ExecuteNonQuery();
+                                }
+
+                                // 6. Tạo thư mục vật lý
+                                string userFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                                    "MASTER_STORAGE", newUserId.ToString());
+                                Directory.CreateDirectory(userFolder);
+                            }
+
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi tạo tài khoản: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            return false;
+        }
     }
 }
