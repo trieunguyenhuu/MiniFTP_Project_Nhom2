@@ -221,15 +221,15 @@ namespace MiniFtpServer_WPF.Services
             }
             catch (IOException)
             {
-                _logAction($"✗ Client {ip} ngắt kết nối đột ngột");
+                _logAction($"Client {ip} ngắt kết nối đột ngột");
             }
             catch (ObjectDisposedException)
             {
-                _logAction($"✗ Kết nối tới {ip} đã đóng");
+                _logAction($"Kết nối tới {ip} đã đóng");
             }
             catch (Exception ex)
             {
-                _logAction($"✗ Lỗi nghiêm trọng từ {ip}: {ex.Message}");
+                _logAction($"Lỗi nghiêm trọng từ {ip}: {ex.Message}");
             }
             finally
             {
@@ -270,7 +270,7 @@ namespace MiniFtpServer_WPF.Services
                 }
 
                 await writer.WriteLineAsync($"TRASH_LIST|{sb}");
-                _logAction($"📂 {_username} xem thùng rác");
+                _logAction($"{_username} xem thùng rác");
             }
             catch (Exception ex)
             {
@@ -294,7 +294,7 @@ namespace MiniFtpServer_WPF.Services
                 if (ok)
                 {
                     await writer.WriteLineAsync("RESTORE_SUCCESS|Khôi phục thành công");
-                    _logAction($"♻ {_username} khôi phục file ID: {fileId}");
+                    _logAction($"{_username} khôi phục file ID: {fileId}");
                 }
                 else
                 {
@@ -323,7 +323,7 @@ namespace MiniFtpServer_WPF.Services
                 if (ok)
                 {
                     await writer.WriteLineAsync("PERMANENT_DELETE_SUCCESS|Đã xóa vĩnh viễn");
-                    _logAction($"🗑 {_username} xóa vĩnh viễn file ID: {fileId}");
+                    _logAction($"{_username} xóa vĩnh viễn file ID: {fileId}");
                 }
                 else
                 {
@@ -345,7 +345,7 @@ namespace MiniFtpServer_WPF.Services
                 if (ok)
                 {
                     await writer.WriteLineAsync("EMPTY_TRASH_SUCCESS|Đã dọn dẹp thùng rác");
-                    _logAction($"🧹 {_username} đã dọn dẹp thùng rác");
+                    _logAction($"{_username} đã dọn dẹp thùng rác");
                 }
                 else
                 {
@@ -371,7 +371,7 @@ namespace MiniFtpServer_WPF.Services
                 string folderName = SanitizeFileName(parts[1]);
                 _dbService.AddFolder(_userId, _currentFolderId, folderName);
                 await writer.WriteLineAsync($"{FtpCommands.MKDIR_SUCCESS}|Tạo thư mục thành công");
-                _logAction($"📁 {_username} tạo folder: {folderName}");
+                _logAction($"{_username} tạo folder: {folderName}");
             }
             catch (Exception ex)
             {
@@ -439,12 +439,12 @@ namespace MiniFtpServer_WPF.Services
             catch (IOException ex)
             {
                 await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi lưu file: {ex.Message}");
-                _logAction($"✗ Upload thất bại: {ex.Message}");
+                _logAction($"Upload thất bại: {ex.Message}");
             }
             catch (Exception ex)
             {
                 await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi upload: {ex.Message}");
-                _logAction($"✗ Upload lỗi: {ex.Message}");
+                _logAction($"Upload lỗi: {ex.Message}");
             }
         }
 
@@ -486,12 +486,12 @@ namespace MiniFtpServer_WPF.Services
                     await fs.CopyToAsync(stream);
                 }
 
-                _logAction($"⬇ {_username} download: {info.Item2} ({FormatFileSize(fileSize)})");
+                _logAction($"{_username} download: {info.Item2} ({FormatFileSize(fileSize)})");
             }
             catch (Exception ex)
             {
                 await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi download: {ex.Message}");
-                _logAction($"✗ Download lỗi: {ex.Message}");
+                _logAction($"Download lỗi: {ex.Message}");
             }
         }
 
@@ -508,7 +508,7 @@ namespace MiniFtpServer_WPF.Services
                 int fileId = int.Parse(parts[1]);
                 _dbService.SoftDeleteFile(fileId);
                 await writer.WriteLineAsync($"{FtpCommands.DELETE_SUCCESS}|Đã chuyển vào thùng rác");
-                _logAction($"🗑 {_username} xóa file ID: {fileId}");
+                _logAction($"{_username} xóa file ID: {fileId}");
             }
             catch (Exception ex)
             {
@@ -548,7 +548,7 @@ namespace MiniFtpServer_WPF.Services
                 if (!isValid)
                 {
                     await writer.WriteLineAsync($"{FtpCommands.ERROR}|Mật khẩu hiện tại không đúng");
-                    _logAction($"✗ {_username} thử đổi mật khẩu nhưng sai mật khẩu cũ");
+                    _logAction($"{_username} thử đổi mật khẩu nhưng sai mật khẩu cũ");
                     return;
                 }
 
@@ -574,7 +574,7 @@ namespace MiniFtpServer_WPF.Services
             catch (Exception ex)
             {
                 await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi đổi mật khẩu: {ex.Message}");
-                _logAction($"✗ Lỗi đổi mật khẩu: {ex.Message}");
+                _logAction($"Lỗi đổi mật khẩu: {ex.Message}");
             }
         }
 
@@ -639,7 +639,7 @@ namespace MiniFtpServer_WPF.Services
                 if (success)
                 {
                     await writer.WriteLineAsync($"{FtpCommands.SHARE_SUCCESS}|Chia sẻ thành công");
-                    _logAction($"📤 {_username} chia sẻ file ID:{fileId} với user ID:{targetUserId} ({accessLevel})");
+                    _logAction($"{_username} chia sẻ file ID:{fileId} với user ID:{targetUserId} ({accessLevel})");
                 }
                 else
                 {
@@ -732,7 +732,7 @@ namespace MiniFtpServer_WPF.Services
                 if (success)
                 {
                     await writer.WriteLineAsync("UNSHARE_SUCCESS|Đã hủy chia sẻ");
-                    _logAction($"🔒 {_username} hủy share file ID:{fileId} với user ID:{targetUserId}");
+                    _logAction($"{_username} hủy share file ID:{fileId} với user ID:{targetUserId}");
                 }
                 else
                 {
@@ -811,7 +811,7 @@ namespace MiniFtpServer_WPF.Services
                 if (success)
                 {
                     await writer.WriteLineAsync($"{FtpCommands.SHARE_SUCCESS}|Đã chia sẻ với {targetFullName}");
-                    _logAction($"📤 {_username} chia sẻ file ID:{fileId} với {targetFullName} ({accessLevel})");
+                    _logAction($"{_username} chia sẻ file ID:{fileId} với {targetFullName} ({accessLevel})");
                 }
                 else
                 {
@@ -821,7 +821,7 @@ namespace MiniFtpServer_WPF.Services
             catch (Exception ex)
             {
                 await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi chia sẻ: {ex.Message}");
-                _logAction($"✗ Lỗi share file by name: {ex.Message}");
+                _logAction($"Lỗi share file by name: {ex.Message}");
             }
         }
 

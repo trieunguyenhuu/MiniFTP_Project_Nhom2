@@ -28,7 +28,7 @@ namespace MiniFTPClient_WPF.Services
         public string CurrentEmail { get; private set; }
         public string CurrentDescription { get; private set; }
 
-        private const string SERVER_IP = "127.0.0.1";
+        private const string SERVER_IP = "192.168.137.103";
         private const int SERVER_PORT = 9999;
 
         // Hàm gửi lệnh cơ bản
