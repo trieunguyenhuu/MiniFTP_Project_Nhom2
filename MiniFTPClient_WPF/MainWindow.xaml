@@ -339,7 +339,7 @@
                 </Grid>
             </Border>
 
-            <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden" Margin="-10,70,10,5" Grid.RowSpan="2" />
+            <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden" Grid.Row="1" />
         </Grid>
     </Grid>
 </Window>
