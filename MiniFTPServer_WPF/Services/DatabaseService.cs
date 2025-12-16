@@ -651,6 +651,34 @@ namespace MiniFtpServer_WPF.Services
             }
         }
 
+        // ==================== LẤY OWNER ID CỦA FILE ====================
+        public int GetFileOwnerId(int fileId)
+        {
+            try
+            {
+                using (var conn = new SQLiteConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = "SELECT owner_user_id FROM Files WHERE file_id = @fid";
+                    using (var cmd = new SQLiteCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@fid", fileId);
+                        var result = cmd.ExecuteScalar();
+                        if (result != null)
+                        {
+                            return Convert.ToInt32(result);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi lấy owner_user_id: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            return -1;
+        }
+
         // ==================== LẤY DANH SÁCH FILE ĐƯỢC CHIA SẺ ====================
         /// <summary>
         /// Lấy danh sách file mà user này được người khác share

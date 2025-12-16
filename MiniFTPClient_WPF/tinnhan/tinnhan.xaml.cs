@@ -23,8 +23,10 @@ namespace MiniFTPClient_WPF.tinnhan
         public bool IsReceived { get; set; }
         public DateTime Date { get; set; }
         public string AvatarPath { get; set; }
-        private bool _isAccepted;  // THÊM DÒNG NÀY
 
+        private bool _isAccepted;
+
+        public string FilePath { get; set; }
         public string Initial
         {
             get
@@ -110,6 +112,7 @@ namespace MiniFTPClient_WPF.tinnhan
                 {
                     // Với tin đã gửi, trường Sender ta sẽ hiển thị Tên người nhận 
                     // để giao diện hiện: "Nguyễn Văn A" -> "bạn đã gửi 1 file"
+                    FileId = file.FileId,
                     Sender = file.OwnerName, // Ở bước 3 ta đã map ReceiverName vào biến OwnerName
                     FileName = file.FileName,
                     Size = file.FormattedSize,

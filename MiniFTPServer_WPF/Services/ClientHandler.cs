@@ -467,7 +467,10 @@ namespace MiniFtpServer_WPF.Services
                     return;
                 }
 
-                string storagePath = Path.Combine(_storageRoot, _userId.ToString(), info.Item1);
+                // Lấy owner_user_id từ DB
+                int ownerId = _dbService.GetFileOwnerId(fileId);
+
+                string storagePath = Path.Combine(_storageRoot, ownerId.ToString(), info.Item1);
 
                 if (!File.Exists(storagePath))
                 {
