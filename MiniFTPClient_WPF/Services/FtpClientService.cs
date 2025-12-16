@@ -198,43 +198,6 @@ namespace MiniFTPClient_WPF.Services
             catch { return false; }
         }
 
-        public async Task<bool> DownloadFileAsync1(int fileId, string savePath, long fileSize)
-        {
-            if (!IsConnected) return false;
-
-            try
-            {
-                await _writer.WriteLineAsync($"DOWNLOAD|{fileId}");
-                await _writer.FlushAsync();
-
-                using (var fs = new FileStream(savePath, FileMode.Create))
-                {
-                    byte[] buffer = new byte[8192];
-                    long totalRead = 0;
-
-                    while (totalRead < fileSize)
-                    {
-                        int read = await _stream.ReadAsync(
-                            buffer, 0,
-                            (int)Math.Min(buffer.Length, fileSize - totalRead)
-                        );
-
-                        if (read <= 0) break;
-
-                        await fs.WriteAsync(buffer, 0, read);
-                        totalRead += read;
-                    }
-
-                    // ✔ kiểm tra đã đọc đủ file chưa
-                    return totalRead == fileSize;
-                }
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
 
         // 5. DELETE FILE
         public async Task<bool> DeleteFileAsync(int fileId)
@@ -585,31 +548,7 @@ namespace MiniFTPClient_WPF.Services
 
             return "NONE";
         }
-
-        // ==================== CLASS MODELS ====================
-        public class SharedFileItem
-        {
-            public int FileId { get; set; }
-            public string FileName { get; set; }
-            public long FileSize { get; set; }
-            public string AccessLevel { get; set; }
-            public string OwnerName { get; set; }
-
-            public string FormattedSize => FormatFileSize(FileSize);
-
-            private string FormatFileSize(long bytes)
-            {
-                string[] sizes = { "B", "KB", "MB", "GB" };
-                double len = bytes;
-                int order = 0;
-                while (len >= 1024 && order < sizes.Length - 1)
-                {
-                    order++;
-                    len /= 1024;
-                }
-                return $"{len:0.##} {sizes[order]}";
-            }
-        }
+      
 
         // ==================== LẤY DANH SÁCH FILE ĐÃ GỬI (SENT) ====================
         public async Task<List<SharedFileItem>> GetSentFilesAsync()

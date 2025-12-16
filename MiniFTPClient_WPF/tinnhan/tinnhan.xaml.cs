@@ -193,7 +193,7 @@ namespace MiniFTPClient_WPF.tinnhan
                 btn.Content = "Đang tải...";
 
                 // 4. Gọi Service tải file
-                bool success = await FtpClientService.Instance.DownloadFileAsync1(
+                bool success = await FtpClientService.Instance.DownloadFileAsync(
                     msg.FileId,
                     saveDialog.FileName,
                     msg.SizeInBytes
@@ -233,7 +233,7 @@ namespace MiniFTPClient_WPF.tinnhan
                 // 6. Bật lại nút
                 btn.IsEnabled = true;
                 btn.Content = "Tải về";
-            }
+            }           
         }
         private async void Btn_Accept_Click(object sender, RoutedEventArgs e)
         {
