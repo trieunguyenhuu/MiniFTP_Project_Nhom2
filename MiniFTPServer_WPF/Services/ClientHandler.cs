@@ -52,6 +52,7 @@ namespace MiniFtpServer_WPF.Services
         public const string CWD_SUCCESS = "CWD_SUCCESS";
 
         public const string ACCEPT_FILE = "ACCEPT_FILE";
+        public const string UPDATE_PROFILE = "UPDATE_PROFILE";
     }
 
     public class ClientHandler
@@ -210,7 +211,11 @@ namespace MiniFtpServer_WPF.Services
 
                             case FtpCommands.CWD:
                                 await HandleCwd(parts, writer);
-                                break;                          
+                                break;
+
+                            case "UPDATE_PROFILE":
+                                await HandleUpdateProfile(parts, writer);
+                                break;
 
                             default:
                                 await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lệnh không hợp lệ");
@@ -895,6 +900,46 @@ namespace MiniFtpServer_WPF.Services
                 await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi chuyển thư mục: {ex.Message}");
             }
         }
+        // Hàm lưu thông tin người dùng thay đổi
+        private async Task HandleUpdateProfile(string[] parts, StreamWriter writer)
+        {
+            try
+            {
+                if (parts.Length < 4)
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Thiếu thông tin cập nhật");
+                    return;
+                }
 
+                string username = parts[1];
+                string email = parts[2];
+                string fullName = parts[3];
+
+                // Kiểm tra username có bị thay đổi không (không cho phép)
+                if (!string.Equals(username, _username, StringComparison.OrdinalIgnoreCase))
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Không thể thay đổi tên tài khoản");
+                    return;
+                }
+
+                // Gọi hàm UpdateProfile từ DatabaseService
+                bool updated = _dbService.UpdateProfile(_userId, email, fullName);
+
+                if (updated)
+                {
+                    await writer.WriteLineAsync("UPDATE_SUCCESS|Cập nhật thành công");
+                    _logAction($"✓ {_username} đã cập nhật thông tin cá nhân");
+                }
+                else
+                {
+                    await writer.WriteLineAsync($"{FtpCommands.ERROR}|Không thể cập nhật thông tin");
+                }
+            }
+            catch (Exception ex)
+            {
+                await writer.WriteLineAsync($"{FtpCommands.ERROR}|Lỗi cập nhật: {ex.Message}");
+                _logAction($"✗ Lỗi cập nhật profile: {ex.Message}");
+            }
+        }
     }
 }

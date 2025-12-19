@@ -28,7 +28,7 @@ namespace MiniFTPClient_WPF.Services
         public string CurrentEmail { get; private set; }
         public string CurrentDescription { get; private set; }
 
-        private const string SERVER_IP = "192.168.1.34";
+        private const string SERVER_IP = "127.0.0.1";
         private const int SERVER_PORT = 9999;
 
         // Hàm gửi lệnh cơ bản
@@ -608,6 +608,7 @@ namespace MiniFTPClient_WPF.Services
             // folderName có thể là tên thư mục con hoặc ".."
             string result = await SendCommandAsync($"CWD|{folderName}");
             return result != null && result.StartsWith("CWD_SUCCESS");
-        }
+        }     
+        
     }
 }

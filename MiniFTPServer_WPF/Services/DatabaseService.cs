@@ -1026,5 +1026,34 @@ namespace MiniFtpServer_WPF.Services
 
             return false;
         }
+
+        // hàm update thông tin người dùng
+        public bool UpdateProfile(int userId, string email, string fullName)
+        {
+            try
+            {
+                using (var conn = new SQLiteConnection(_connectionString))
+                {
+                    conn.Open();
+                    string sql = "UPDATE Users SET Email = @email, full_name = @name WHERE user_id = @uid";
+
+                    using (var cmd = new SQLiteCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@email", email ?? "");
+                        cmd.Parameters.AddWithValue("@name", fullName);
+                        cmd.Parameters.AddWithValue("@uid", userId);
+
+                        int rows = cmd.ExecuteNonQuery();
+                        return rows > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi cập nhật thông tin: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
     }
 }

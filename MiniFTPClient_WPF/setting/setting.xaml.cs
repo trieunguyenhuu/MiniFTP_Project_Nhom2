@@ -378,9 +378,90 @@ namespace MiniFTPClient_WPF.setting
             ConfirmPwdPlaceholder.Visibility = isEmpty ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        private void BtnSaveProfile_Click_1(object sender, RoutedEventArgs e)
+        private async void BtnSaveProfile_Click_1(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                string username = TxtUsername.Text.Trim();
+                string email = TxtEmailCT.Text.Trim();
+                string fullName = TxtFullName.Text.Trim();
 
+                // Validation
+                if (string.IsNullOrWhiteSpace(username))
+                {
+                    MessageBox.Show("Tên tài khoản không được để trống!", "Lỗi",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    TxtUsername.Focus();
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(fullName))
+                {
+                    MessageBox.Show("Họ và tên không được để trống!", "Lỗi",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    TxtFullName.Focus();
+                    return;
+                }
+
+                // Kiểm tra email hợp lệ (nếu nhập)
+                if (!string.IsNullOrWhiteSpace(email) && !IsValidEmail(email))
+                {
+                    MessageBox.Show("Email không hợp lệ!", "Lỗi",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    TxtEmailCT.Focus();
+                    return;
+                }
+
+                // Vô hiệu hóa nút để tránh spam
+                var btn = sender as Button;
+                if (btn != null)
+                {
+                    btn.IsEnabled = false;
+                    btn.Content = "Đang lưu...";
+                }
+
+                try
+                {
+                    // Gửi lệnh UPDATE_PROFILE lên server
+                    string result = await FtpClientService.Instance.UpdateProfileAsync(username, email, fullName);
+
+                    if (result == "OK")
+                    {
+                        MessageBox.Show(
+                            "✓ Cập nhật thông tin thành công!\n\nThông tin đã được lưu vào hệ thống.",
+                            "Thành công",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                        );
+
+                        // Cập nhật lại hiển thị
+                        TxtDisplayName.Text = fullName;
+                        TxtEmail.Text = email;
+                    }
+                    else
+                    {
+                        MessageBox.Show(
+                            $"Không thể cập nhật thông tin:\n{result}",
+                            "Lỗi",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error
+                        );
+                    }
+                }
+                finally
+                {
+                    if (btn != null)
+                    {
+                        btn.IsEnabled = true;
+                        btn.Content = "Lưu thay đổi";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi lưu thông tin: {ex.Message}", "Lỗi",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
     }
