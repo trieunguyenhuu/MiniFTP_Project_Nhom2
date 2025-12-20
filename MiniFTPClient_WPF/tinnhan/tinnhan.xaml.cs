@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Linq;
 
 namespace MiniFTPClient_WPF.tinnhan
 {
@@ -127,8 +128,13 @@ namespace MiniFTPClient_WPF.tinnhan
 
         private void SetupFilters()
         {
+            // Filters cho TAB TIN ĐÃ NHẬN
             CbReceiveDateFilter.SelectionChanged += FilterReceived_Changed;
             CbSenderFilter.SelectionChanged += FilterReceived_Changed;
+
+            // Filters cho TAB TIN ĐÃ GỬI
+            CbSentDateFilter.SelectionChanged += FilterSent_Changed;
+            CbSentFilter.SelectionChanged += FilterSent_Changed;
         }
 
         // Trong Tinnhan.xaml.cs
@@ -369,24 +375,27 @@ namespace MiniFTPClient_WPF.tinnhan
         // Search Received
         private void SearchBoxReceived_TextChanged(object sender, TextChangedEventArgs e)
         {
+            // Cập nhật placeholder
             SearchPlaceholderReceived.Visibility =
                 string.IsNullOrWhiteSpace(SearchBoxReceived.Text)
                     ? Visibility.Visible
                     : Visibility.Collapsed;
 
+            // Kích hoạt filter ngay khi gõ
             FilterReceived_Changed(null, null);
-            // TODO: thêm filter theo _receivedMessages nếu bạn muốn
         }
 
         // Search Sent
         private void SearchBoxSent_TextChanged(object sender, TextChangedEventArgs e)
         {
+            // Cập nhật placeholder
             SearchPlaceholderSent.Visibility =
                 string.IsNullOrWhiteSpace(SearchBoxSent.Text)
                     ? Visibility.Visible
                     : Visibility.Collapsed;
 
-            // TODO: thêm filter theo _sentMessages nếu bạn muốn
+            // Kích hoạt filter ngay khi gõ
+            FilterSent_Changed(null, null);
         }
 
         private void TabReceived_Click(object sender, RoutedEventArgs e)
@@ -425,17 +434,17 @@ namespace MiniFTPClient_WPF.tinnhan
             {
                 if (item is not MessageItem msg) return false;
 
-                // Lọc theo ngày
+                // 1. Lọc theo ngày
                 var dateFilter = (CbReceiveDateFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
                 if (!FilterByDate(msg, dateFilter))
                     return false;
 
-                // Lọc theo dung lượng
+                // 2. Lọc theo dung lượng
                 var sizeFilter = (CbSenderFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
                 if (!FilterBySize(msg, sizeFilter))
                     return false;
 
-                // Lọc theo search box
+                // 3. Lọc theo search box
                 var searchText = SearchBoxReceived.Text.Trim().ToLower();
                 if (!string.IsNullOrEmpty(searchText) && !msg.Sender.ToLower().Contains(searchText))
                     return false;
@@ -445,22 +454,72 @@ namespace MiniFTPClient_WPF.tinnhan
             _receivedView.Refresh();
         }
 
+        // ==================== FILTER TIN ĐÃ GỬI ====================
+        private void FilterSent_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (_sentView == null) return;
+
+            _sentView.Filter = item =>
+            {
+                if (item is not MessageItem msg) return false;
+
+                // 1. Lọc theo ngày
+                var dateFilter = (CbSentDateFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
+                if (!FilterByDate(msg, dateFilter))
+                    return false;
+
+                // 2. Lọc theo dung lượng
+                var sizeFilter = (CbSentFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
+                if (!FilterBySize(msg, sizeFilter))
+                    return false;
+
+                // 3. Lọc theo search box
+                var searchText = SearchBoxSent.Text.Trim().ToLower();
+                if (!string.IsNullOrEmpty(searchText) && !msg.Sender.ToLower().Contains(searchText))
+                    return false;
+
+                return true;
+            };
+            _sentView.Refresh();
+        }
+
+        // ==================== HÀM HỖ TRỢ LỌC THEO NGÀY ====================
         private bool FilterByDate(MessageItem msg, string filter)
         {
-            if (string.IsNullOrEmpty(filter) || filter == "Tất cả") return true;
-            if (filter == "Hôm nay") return msg.Date.Date == DateTime.Now.Date;
-            if (filter == "7 ngày trước") return msg.Date >= DateTime.Now.AddDays(-7);
+            if (string.IsNullOrEmpty(filter) || filter == "Tất cả")
+                return true;
+
+            if (filter == "Hôm nay")
+                return msg.Date.Date == DateTime.Now.Date;
+
+            if (filter == "Trong 7 ngày" || filter == "7 ngày trước")
+                return msg.Date >= DateTime.Now.AddDays(-7);
+
+            if (filter == "Trong 30 ngày")
+                return msg.Date >= DateTime.Now.AddDays(-30);
+
             return true;
         }
 
+        // ==================== HÀM HỖ TRỢ LỌC THEO DUNG LƯỢNG ====================
         private bool FilterBySize(MessageItem msg, string filter)
         {
-            if (string.IsNullOrEmpty(filter) || filter == "Tất cả") return true;
+            if (string.IsNullOrEmpty(filter) || filter == "Tất cả")
+                return true;
 
             long sizeInBytes = msg.SizeInBytes;
-            if (filter.Contains("Nhỏ")) return sizeInBytes < 1048576; // < 1MB
-            if (filter.Contains("Trung bình")) return sizeInBytes >= 1048576 && sizeInBytes <= 10485760; // 1-10MB
-            if (filter.Contains("Lớn")) return sizeInBytes > 10485760; // > 10MB
+
+            // Nhỏ: < 1MB
+            if (filter.Contains("Nhỏ"))
+                return sizeInBytes < 1048576;
+
+            // Trung bình: 1MB - 10MB
+            if (filter.Contains("Trung bình"))
+                return sizeInBytes >= 1048576 && sizeInBytes <= 10485760;
+
+            // Lớn: > 10MB
+            if (filter.Contains("Lớn"))
+                return sizeInBytes > 10485760;
 
             return true;
         }
