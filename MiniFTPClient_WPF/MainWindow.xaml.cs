@@ -109,13 +109,18 @@ namespace MiniFTPClient_WPF
 
         private void BtnLogout_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Tạo và hiển thị lại màn hình Đăng nhập
+            // Log trước khi đăng xuất
+            if (Window.GetWindow(this) is MainWindow mainWindow)
+            {
+                // Nếu Page1 đang active, thêm log
+                if (MainFrame.Content is home.Page1 page1)
+                {
+                    // Gọi hàm AddLog public nếu cần
+                }
+            }
+
             LoginForm loginForm = new LoginForm();
             loginForm.Show();
-
-            // 2. Đóng màn hình chính
-            // Lưu ý: Lệnh Close() này sẽ kích hoạt sự kiện MainWindow_Closing ở dưới,
-            // nên nó sẽ tự động gửi lệnh QUIT và ngắt kết nối FTP luôn.
             this.Close();
         }
 

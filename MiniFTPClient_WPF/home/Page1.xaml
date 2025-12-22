@@ -776,7 +776,7 @@
                                                     BorderThickness="1"
                                                     Background="#020617"
                                                     BorderBrush="#1F2937">
-                                                <TextBlock Text="{Binding Message}"
+                                                <TextBlock Text="{Binding DisplayMessage}"
                                                            Foreground="Black"
                                                            FontSize="16"
                                                            TextWrapping="Wrap"/>
