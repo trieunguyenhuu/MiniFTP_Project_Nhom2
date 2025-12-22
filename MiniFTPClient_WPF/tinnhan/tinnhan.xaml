@@ -284,7 +284,7 @@
         </Border>
 
         <!-- Search: Received -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" Visibility="Visible" x:Name="SearchReceivedGrid">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -294,8 +294,7 @@
                     <Border x:Name="SearchReceivedBorder" Grid.Column="0"
                      BorderBrush="LightGray" BorderThickness="1" Background="white"
                     CornerRadius="20" Padding="12,8" VerticalAlignment="Center"
-                    MinWidth="280" HorizontalAlignment="Left" Width="280" Margin="0,0,0,10"
-                    Visibility="Visible">
+                    MinWidth="280" HorizontalAlignment="Left" Width="280" Margin="0,0,0,10">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -335,7 +334,7 @@
                     Visibility="Visible">
 
                     <!-- Combo ngày nhận -->
-                    <ComboBox x:Name="CbReceiveDateFilter"
+                    <ComboBox x:Name="CbReceiveDateFilter" Visibility="Collapsed"
                           Width="150"
                           Padding="8,4"
                           Margin="0,0,8,0"
@@ -363,7 +362,7 @@
         </Grid>
 
         <!-- Search: Sent -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" Visibility="Collapsed" x:Name="SearchSentGrid">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
@@ -372,8 +371,7 @@
             <Border x:Name="SearchSentBorder" Grid.Column="0"
                     BorderBrush="LightGray" BorderThickness="1" Background="white"
                     CornerRadius="20" Padding="12,8" VerticalAlignment="Center"
-                    MinWidth="280" HorizontalAlignment="Left" Width="280" Margin="0,0,0,10"
-                    Visibility="Collapsed">
+                    MinWidth="280" HorizontalAlignment="Left" Width="280" Margin="0,0,0,10">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -413,8 +411,8 @@
                 HorizontalAlignment="Left"
                 Visibility="Visible">
 
-                <!-- Combo ngày nhận -->
-                <ComboBox x:Name="CbSentDateFilter"
+                <!--  -->
+                <ComboBox x:Name="CbSentDateFilter" Visibility="Collapsed"
                   Width="150"
                   Padding="8,4"
                   Margin="0,0,8,0"

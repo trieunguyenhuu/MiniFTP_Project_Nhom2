@@ -405,11 +405,9 @@ namespace MiniFTPClient_WPF.tinnhan
             ReceivedPanel.Visibility = Visibility.Visible;
             SentPanel.Visibility = Visibility.Collapsed;
 
-            SearchReceivedBorder.Visibility = Visibility.Visible;
-            FilterReceivedPanel.Visibility = Visibility.Visible;
-
-            SearchSentBorder.Visibility = Visibility.Collapsed;
-            FilterSentPanel.Visibility = Visibility.Collapsed;
+            // Search + Filter (ẨN / HIỆN GRID CHA)
+            SearchReceivedGrid.Visibility = Visibility.Visible;
+            SearchSentGrid.Visibility = Visibility.Collapsed;
         }
 
         private void TabSent_Click(object sender, RoutedEventArgs e)
@@ -419,11 +417,9 @@ namespace MiniFTPClient_WPF.tinnhan
             SentPanel.Visibility = Visibility.Visible;
             ReceivedPanel.Visibility = Visibility.Collapsed;
 
-            SearchSentBorder.Visibility = Visibility.Visible;
-            FilterSentPanel.Visibility = Visibility.Visible;
-
-            SearchReceivedBorder.Visibility = Visibility.Collapsed;
-            FilterReceivedPanel.Visibility = Visibility.Collapsed;
+            // Search + Filter (ẨN / HIỆN GRID CHA)
+            SearchReceivedGrid.Visibility = Visibility.Collapsed;
+            SearchSentGrid.Visibility = Visibility.Visible;
         }
 
         private void FilterReceived_Changed(object sender, SelectionChangedEventArgs e)
