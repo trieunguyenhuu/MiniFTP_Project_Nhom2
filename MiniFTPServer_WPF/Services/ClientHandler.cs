@@ -66,7 +66,7 @@ namespace MiniFtpServer_WPF.Services
         private int _currentFolderId = -1;
         private string _username = "";
 
-        private const long MAX_FILE_SIZE = 100 * 1024 * 1024;
+        private const long MAX_FILE_SIZE = 2L * 1024 * 1024 * 1024; // dung lượng file có thể tải lên
 
         public ClientHandler(Socket socket, DatabaseService db, Action<string> log, string storage)
         {
