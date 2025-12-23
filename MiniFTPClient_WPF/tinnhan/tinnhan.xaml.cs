@@ -137,8 +137,6 @@ namespace MiniFTPClient_WPF.tinnhan
             CbSentFilter.SelectionChanged += FilterSent_Changed;
         }
 
-        // Trong Tinnhan.xaml.cs
-
         private async void BtnDecline_Click(object sender, RoutedEventArgs e)
         {
             // 1. Lấy thông tin dòng đang chọn

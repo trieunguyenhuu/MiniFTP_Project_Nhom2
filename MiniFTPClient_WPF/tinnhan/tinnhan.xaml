@@ -353,9 +353,9 @@
                           FontSize="15"
                           HorizontalContentAlignment="Left">
                         <ComboBoxItem IsSelected="True" Content="Tất cả"/>
-                        <ComboBoxItem IsSelected="True" Content="Nhỏ (&lt; 1MB)"/>
-                        <ComboBoxItem IsSelected="True" Content="Trung bình (1 - 10MB)"/>
-                        <ComboBoxItem IsSelected="True" Content="Lớn (&gt; 10MB)"/>
+                        <ComboBoxItem Content="Nhỏ (&lt; 1MB)"/>
+                        <ComboBoxItem Content="Trung bình (1 - 10MB)"/>
+                        <ComboBoxItem Content="Lớn (&gt; 10MB)"/>
                     </ComboBox>
                 </StackPanel>
             </Grid>
@@ -430,9 +430,9 @@
                   FontSize="15"
                   HorizontalContentAlignment="Left">
                     <ComboBoxItem IsSelected="True" Content="Tất cả"/>
-                    <ComboBoxItem IsSelected="True" Content="Nhỏ (&lt; 1MB)"/>
-                    <ComboBoxItem IsSelected="True" Content="Lớn (&gt; 10MB)"/>
-                    <ComboBoxItem IsSelected="True" Content="Trung bình (1 - 10MB)"/>
+                    <ComboBoxItem Content="Nhỏ (&lt; 1MB)"/>
+                    <ComboBoxItem Content="Lớn (&gt; 10MB)"/>
+                    <ComboBoxItem Content="Trung bình (1 - 10MB)"/>
                 </ComboBox>
             </StackPanel>
         </Grid>
