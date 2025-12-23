@@ -237,5 +237,28 @@ namespace MiniFTPClient_WPF
             bool empty = string.IsNullOrEmpty(ConfirmPassPasswordBox.Password) && string.IsNullOrEmpty(ConfirmPassVisibleBox.Text);
             ConfirmPassPlaceholder.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
         }
+
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                // Kiểm tra xem đang ở panel nào
+                if (LoginFormBorder.Visibility == Visibility.Visible)
+                {
+                    // Đang ở màn hình đăng nhập → gọi nút đăng nhập
+                    BtnLogin_Click(sender, e);
+                }
+                else if (ForgotFormBorder.Visibility == Visibility.Visible)
+                {
+                    // Đang ở màn hình quên mật khẩu → gọi nút gửi mã
+                    SendCode_Click(sender, e);
+                }
+                else if (ChangePasswordBorder.Visibility == Visibility.Visible)
+                {
+                    // Đang ở màn hình đổi mật khẩu → gọi nút đổi mật khẩu
+                    btnChangePassword.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                }
+            }
+        }
     }
 }

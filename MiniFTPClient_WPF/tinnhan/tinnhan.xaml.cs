@@ -27,6 +27,7 @@ namespace MiniFTPClient_WPF.tinnhan
 
         private bool _isAccepted;
 
+        public DateTime DateOnly => Date.Date;
         public string FilePath { get; set; }
         public string Initial
         {
@@ -95,7 +96,7 @@ namespace MiniFTPClient_WPF.tinnhan
                     FileName = file.FileName,
                     Size = file.FormattedSize,
                     SizeInBytes = file.FileSize,
-                    Time = "Mới đây",
+                    Time = " ",
                     Date = DateTime.Now,
                     IsReceived = true,
                     IsAccepted = false,
@@ -118,7 +119,7 @@ namespace MiniFTPClient_WPF.tinnhan
                     FileName = file.FileName,
                     Size = file.FormattedSize,
                     SizeInBytes = file.FileSize,
-                    Time = "Mới đây",
+                    Time = " ",
                     Date = DateTime.Now,
                     IsReceived = false, // Đánh dấu là tin gửi đi
                     AvatarPath = "pack://application:,,,/MiniFTPClient_WPF;component/anh/karina.jpg"
@@ -359,14 +360,16 @@ namespace MiniFTPClient_WPF.tinnhan
 
         private void BindData()
         {
+            // TIN ĐÃ NHẬN - Nhóm theo ngày
             _receivedView = new ListCollectionView(_receivedMessages);
-            _receivedView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(MessageItem.Date)));
-            _receivedView.SortDescriptions.Add(new SortDescription(nameof(MessageItem.Date), ListSortDirection.Descending)); // THÊM DÒNG NÀY
+            _receivedView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(MessageItem.DateOnly)));
+            _receivedView.SortDescriptions.Add(new SortDescription(nameof(MessageItem.Date), ListSortDirection.Descending));
             ReceivedList.ItemsSource = _receivedView;
 
+            // TIN ĐÃ GỬI - Nhóm theo ngày
             _sentView = new ListCollectionView(_sentMessages);
-            _sentView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(MessageItem.Date)));
-            _sentView.SortDescriptions.Add(new SortDescription(nameof(MessageItem.Date), ListSortDirection.Descending)); // THÊM DÒNG NÀY
+            _sentView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(MessageItem.DateOnly)));
+            _sentView.SortDescriptions.Add(new SortDescription(nameof(MessageItem.Date), ListSortDirection.Descending));
             SentList.ItemsSource = _sentView;
         }
 
