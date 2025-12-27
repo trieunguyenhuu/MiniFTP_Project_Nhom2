@@ -254,7 +254,7 @@ namespace MiniFTPClient_WPF.Services
             _writer = null;
         }
 
-        // ==================== THÊM HÀM ChangePasswordAsync (TODO) ====================
+        // ==================== Hàm yêu cầu đổi mật khẩu ====================
         public async Task<string> ChangePasswordAsync(string currentPwd, string newPwd)
         {
             try
@@ -282,7 +282,7 @@ namespace MiniFTPClient_WPF.Services
             }
         }
 
-        // ==================== THÊM HÀM UpdateProfileAsync (TODO) ====================
+        // ==================== Hàm gửi yêu cầu cập nhật thông tin người dùng cho server ====================
         public async Task<string> UpdateProfileAsync(string username, string email, string fullName)
         {
             try

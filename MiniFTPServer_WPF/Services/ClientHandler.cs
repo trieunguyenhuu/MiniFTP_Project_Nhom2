@@ -25,7 +25,7 @@ namespace MiniFtpServer_WPF.Services
         public const string DELETE_SUCCESS = "DELETE_SUCCESS";
         public const string GET_USERS = "GET_USERS";
         public const string USERS_LIST = "USERS_LIST";
-        public const string CHANGE_PASSWORD = "CHANGE_PASSWORD";
+        
         public const string QUIT = "QUIT";
         public const string LOGOUT = "LOGOUT";
         public const string ERROR = "ERROR";
@@ -52,7 +52,9 @@ namespace MiniFtpServer_WPF.Services
         public const string CWD_SUCCESS = "CWD_SUCCESS";
 
         public const string ACCEPT_FILE = "ACCEPT_FILE";
+
         public const string UPDATE_PROFILE = "UPDATE_PROFILE";
+        public const string CHANGE_PASSWORD = "CHANGE_PASSWORD";
     }
 
     public class ClientHandler

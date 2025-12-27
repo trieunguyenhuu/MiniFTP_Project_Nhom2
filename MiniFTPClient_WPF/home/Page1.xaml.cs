@@ -188,37 +188,6 @@ namespace MiniFTPClient_WPF.home
         }
 
         // =========================================================
-        // USER MODEL & SAMPLE DATA (Giữ nguyên cho giao diện Share)
-        // =========================================================
-
-        public class UserItem : INotifyPropertyChanged
-        {
-            private bool _isSelected;
-
-            public int UserId { get; set; }
-            public string Name { get; set; } = "";
-            public string AvatarPath { get; set; } = "";
-
-            public bool IsSelected
-            {
-                get => _isSelected;
-                set
-                {
-                    if (_isSelected != value)
-                    {
-                        _isSelected = value;
-                        OnPropertyChanged(nameof(IsSelected));
-                    }
-                }
-            }
-
-            public event PropertyChangedEventHandler PropertyChanged;
-            protected void OnPropertyChanged(string propertyName) =>
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-
-        // =========================================================
         // SHARE PANEL LOGIC (Giữ nguyên)
         // =========================================================
 
@@ -269,9 +238,6 @@ namespace MiniFTPClient_WPF.home
                     "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
-
-
         private void CloseSharePanel_Click(object sender, RoutedEventArgs e)
         {
             SharePanel.Visibility = Visibility.Collapsed;

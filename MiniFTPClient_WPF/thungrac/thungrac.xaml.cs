@@ -1,4 +1,5 @@
 ﻿using MiniFTPClient_WPF.Services;
+using MiniFTPClient_WPF.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -12,35 +13,6 @@ namespace MiniFTPClient_WPF.thungrac
 
     using System.ComponentModel;
     using System.Windows.Input;
-
-    public class TrashItem : INotifyPropertyChanged
-    {
-        private bool _isSelected;
-
-        public bool IsSelected
-        {
-            get => _isSelected;
-            set
-            {
-                if (_isSelected != value)
-                {
-                    _isSelected = value;
-                    OnPropertyChanged(nameof(IsSelected));
-                }
-            }
-        }
-
-        public int FileId { get; set; }
-        public string FileName { get; set; } = string.Empty;
-        public string OriginalPath { get; set; } = string.Empty;
-        public DateTime DeletedDate { get; set; } = DateTime.Now;
-        public string Size { get; set; } = string.Empty;
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string propertyName) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
 
     public partial class Thungrac : Page
     {
