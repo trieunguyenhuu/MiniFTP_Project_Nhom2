@@ -59,7 +59,7 @@ namespace MiniFtpServer_WPF.Services
 
     public class ClientHandler
     {
-        private Socket _clientSocket;
+        private Socket _clientSocket; // Socket kết nối với client
         private DatabaseService _dbService;
         private Action<string> _logAction;
         private string _storageRoot;
@@ -83,11 +83,12 @@ namespace MiniFtpServer_WPF.Services
             string ip = _clientSocket.RemoteEndPoint?.ToString() ?? "Unknown";
 
             try
-            {
+            {   // Sử dụng NetworkStream để đọc/ghi dữ liệu qua TCP
                 using (var stream = new NetworkStream(_clientSocket, ownsSocket: false))
                 using (var reader = new StreamReader(stream, Encoding.UTF8))
                 using (var writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true })
                 {
+                    // Giao tiếp qua TCP socket
                     await writer.WriteLineAsync($"{FtpCommands.WELCOME}|Vui lòng đăng nhập.");
 
                     string line;

@@ -16,8 +16,8 @@ namespace MiniFTPClient_WPF.Services
         public static FtpClientService Instance => _instance ??= new FtpClientService();
 
         // Biến kết nối
-        private TcpClient _client;
-        private NetworkStream _stream;
+        private TcpClient _client; // TCP Client
+        private NetworkStream _stream; // Stream để giao tiếp
         private StreamReader _reader;
         private StreamWriter _writer;
 
@@ -55,7 +55,7 @@ namespace MiniFTPClient_WPF.Services
                 if (_client == null || !_client.Connected)
                 {
                     _client = new TcpClient();
-                    await _client.ConnectAsync(SERVER_IP, SERVER_PORT);
+                    await _client.ConnectAsync(SERVER_IP, SERVER_PORT); // Kết nối TCP tới server
 
                     _stream = _client.GetStream();
                     _reader = new StreamReader(_stream, Encoding.UTF8);
@@ -71,7 +71,7 @@ namespace MiniFTPClient_WPF.Services
                 {
                     
                     CurrentUsername = username;
-                    // Lấy tên hiển thị: LOGIN_SUCCESS|Nguyễn Lan Anh
+                    // Lấy tên hiển thị
                     var parts = response.Split('|');
                     // 1. Lấy User ID (Index 1)
                     if (parts.Length > 1)

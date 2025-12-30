@@ -14,10 +14,10 @@ namespace MiniFtpServer_WPF.Services
         private DatabaseService _db;
         private Action<string> _logger;
 
-        // --- THÊM MỚI: Hàm báo cáo số lượng client ---
+        // Hàm báo cáo số lượng client ---
         private Action<int> _countCallback;
 
-        // --- THÊM MỚI: Danh sách quản lý client ---
+        // Danh sách quản lý client ---
         private List<Socket> _clients = new List<Socket>();
         private string _storageRoot;
 
@@ -34,10 +34,11 @@ namespace MiniFtpServer_WPF.Services
         public void Start()
         {
             if (_isRunning) return;
-            _listener = new TcpListener(IPAddress.Any, 9999);
+            _listener = new TcpListener(IPAddress.Any, 9999); //IPAddress.Parse("192.168.1.100")
             _listener.Start();
             _isRunning = true;
             _logger("Server đã khởi động...");
+            // Chạy loop lắng nghe trên thread riêng
             Task.Run(ListenLoop);
         }
 
@@ -76,7 +77,7 @@ namespace MiniFtpServer_WPF.Services
                     // Tạo Handler và chạy
                     var handler = new ClientHandler(socket, _db, _logger, _storageRoot);
 
-                    // Chạy xử lý và chờ khi nó kết thúc để trừ số lượng
+                    // Mỗi client được xử lý trên thread riêng
                     _ = Task.Run(async () =>
                     {
                         await handler.Process();
