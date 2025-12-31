@@ -563,7 +563,7 @@ namespace MiniFTPClient_WPF.Services
 
                 if (resp != null && resp.StartsWith("SENT_FILES_LIST"))
                 {
-                    string data = resp.Substring(16); // Bỏ chữ SENT_FILES_LIST| (độ dài 16)
+                    string data = resp.Substring(16);
                     if (!string.IsNullOrEmpty(data))
                     {
                         var items = data.Split(';', StringSplitOptions.RemoveEmptyEntries);
